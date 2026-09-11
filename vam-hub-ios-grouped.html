@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f2f5fa" />
+  <title>VAM Hub — Grouped</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Noto Sans Thai','ui-sans-serif','system-ui','sans-serif'] } } } }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+    :root { color-scheme: light; }
+    * { -webkit-tap-highlight-color: transparent; }
+    body { background: #e7ebf2; }
+    .screen { min-height: 100svh; padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+    .pressable { transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
+    .pressable:active { transform: scale(.975); }
+    .safe-top { padding-top: max(18px, env(safe-area-inset-top)); }
+    .safe-bottom { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+    @keyframes reveal { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:none } }
+    @media (min-width: 560px) { .phone { max-width:430px; min-height:900px; margin:24px auto; border-radius:42px; overflow:hidden; box-shadow:0 30px 80px rgba(24,39,64,.22); } }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+  </style>
+</head>
+<body class="font-sans text-slate-900 antialiased">
+  <main class="phone relative bg-[#f2f5fa]">
+    <section id="grouped" class="screen safe-top bg-[#f4f5f7]">
+      <header class="px-5 pt-3"><div class="flex items-center justify-between"><div><p class="text-sm font-semibold text-blue-600">VAM Hub</p><h1 class="mt-1 text-[34px] font-bold tracking-[-.035em]">ระบบของคุณ</h1></div><button class="grid h-12 w-12 place-items-center rounded-full bg-white text-[#18304f] shadow-sm" aria-label="โปรไฟล์"><span class="text-sm font-bold">VA</span></button></div><p class="mt-2 max-w-xs text-sm leading-6 text-slate-500">เข้าถึงเครื่องมือบริหารจัดการยานพาหนะได้จากที่เดียว</p></header>
+      <div class="px-5 pt-6">
+        <label class="flex h-12 items-center gap-3 rounded-2xl bg-[#e6e8ec] px-4 text-slate-500"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input class="w-full bg-transparent text-sm outline-none placeholder:text-slate-400" placeholder="ค้นหาระบบ" aria-label="ค้นหาระบบ" /></label>
+        <div class="mt-7"><div class="mb-2 flex items-center justify-between px-1"><h2 class="text-[13px] font-semibold uppercase tracking-[.12em] text-slate-500">รายการโปรด</h2><button class="text-sm font-semibold text-blue-600">แก้ไข</button></div>
+          <div class="overflow-hidden rounded-[22px] bg-white shadow-[0_4px_18px_rgba(35,48,68,.06)]">
+            <button class="pressable flex min-h-[82px] w-full items-center gap-4 px-4 text-left"><span class="grid h-12 w-12 place-items-center rounded-[14px] bg-[#1c61b8] text-white"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 16l2-6h14l2 6v4h-2v-2H5v2H3z"/><path d="M7 10l1.5-4h7L17 10"/></svg></span><span class="flex-1"><strong class="block text-[15px]">Fleet Management</strong><span class="mt-1 block text-xs text-slate-500">ภาพรวมการบริหารยานพาหนะ</span></span><svg class="h-5 w-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+            <div class="ml-20 border-t border-slate-100"></div>
+            <button class="pressable flex min-h-[82px] w-full items-center gap-4 px-4 text-left"><span class="grid h-12 w-12 place-items-center rounded-[14px] bg-[#e97623] text-white"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a4 4 0 01-5 5L4 17l3 3 5.7-5.7a4 4 0 005-5z"/></svg></span><span class="flex-1"><strong class="block text-[15px]">แจ้งซ่อม</strong><span class="mt-1 block text-xs text-slate-500">สร้างและติดตามรายการซ่อม</span></span><span class="rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-600">2 งาน</span><svg class="h-5 w-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+          </div>
+        </div>
+        <div class="mt-7"><h2 class="mb-2 px-1 text-[13px] font-semibold uppercase tracking-[.12em] text-slate-500">ระบบทั้งหมด</h2><div class="overflow-hidden rounded-[22px] bg-white shadow-[0_4px_18px_rgba(35,48,68,.06)]" id="grouped-list"></div></div>
+        <button class="pressable mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2a9fd6] px-5 py-3.5 font-semibold text-white shadow-[0_10px_24px_rgba(42,159,214,.2)]"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 3L9 15M21 3l-7 18-5-6-6-3z"/></svg>เชื่อมต่อ Telegram</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    const modules = [
+      {name:'การขอใช้รถ', desc:'จองรถและติดตามการอนุมัติ', color:'#2878d0', icon:'car'},
+      {name:'VAM AI', desc:'ผู้ช่วยค้นหาและสรุปข้อมูล', color:'#d68a16', icon:'ai'},
+      {name:'จัดการสิทธิ์', desc:'ดูแลสิทธิ์ผู้ใช้งาน', color:'#138f7e', icon:'shield'}
+    ];
+    const icons = {
+      car:'<path d="M4 16l1.5-5h13l1.5 5M7 11l1-3h8l1 3M6 19h12M8 16h.01M16 16h.01"/>',
+      ai:'<path d="M9 8h6M8 4h8l1 4H7zM5 8h14v11H5zM9 12v3M15 12v3"/>',
+      shield:'<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/>'
+    };
+    const svg = key => `<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${icons[key]}</svg>`;
+    const groupedList = document.querySelector('#grouped-list');
+    if (groupedList) groupedList.innerHTML = modules.map((m,i)=>`<button class="pressable flex min-h-[72px] w-full items-center gap-4 px-4 text-left ${i?'border-t border-slate-100':''}"><span class="grid h-11 w-11 place-items-center rounded-[14px] text-white" style="background:${m.color}">${svg(m.icon)}</span><span class="flex-1"><strong class="block text-[15px]">${m.name}</strong><span class="mt-0.5 block text-xs text-slate-500">${m.desc}</span></span><svg class="h-5 w-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>`).join('');
+    const operationsList = document.querySelector('#operations-list');
+    if (operationsList) operationsList.innerHTML = modules.map(m=>`<button class="pressable flex min-h-[78px] w-full items-center gap-4 rounded-[21px] bg-white px-4 text-left shadow-[0_5px_18px_rgba(35,48,68,.055)]"><span class="grid h-12 w-12 place-items-center rounded-[16px] text-white" style="background:${m.color}">${svg(m.icon)}</span><span class="flex-1"><strong class="block text-[15px]">${m.name}</strong><span class="mt-1 block text-xs text-slate-500">${m.desc}</span></span><svg class="h-5 w-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>`).join('');
+  </script>
+</body>
+</html>
