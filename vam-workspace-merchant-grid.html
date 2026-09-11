@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#6f21ad" />
+  <title>VAM Workspace — Shortcut Grid</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans Thai','ui-sans-serif','system-ui','sans-serif']}}}}</script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+    :root{color-scheme:light}*{-webkit-tap-highlight-color:transparent}
+    body{background:#e7ebf2}.safe-top{padding-top:max(18px,env(safe-area-inset-top))}
+    .pressable{transition:transform .18s ease,background .18s ease}.pressable:active{transform:scale(.96)}
+    .module-art{filter:drop-shadow(0 7px 8px rgba(26,44,70,.14))}
+    @media(min-width:560px){.phone{width:430px;min-height:880px;margin:24px auto;border-radius:42px;overflow:hidden;box-shadow:0 30px 80px rgba(24,39,64,.22)}.telegram-fab{left:calc(50% - 195px)!important}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body class="font-sans text-slate-900 antialiased">
+  <main class="phone relative min-h-[100svh] overflow-hidden bg-[#f7f8fb] pb-28">
+    <header class="safe-top relative overflow-hidden bg-[#6f21ad] px-4 pb-6 text-white">
+      <div class="absolute -right-20 -top-28 h-64 w-64 rounded-full border-[48px] border-white/[.045]"></div>
+      <div class="relative flex items-center justify-center pt-3">
+        <h1 class="text-[28px] font-bold tracking-[-.035em]">VAM <span class="rounded-md bg-[#f2b36f] px-2 py-0.5 text-[14px] font-bold tracking-normal text-[#5b218d]">Workspace</span></h1>
+        <button class="pressable absolute right-0 grid h-10 w-10 place-items-center rounded-full bg-black/10" aria-label="ออกจากระบบ"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M10 17l5-5-5-5M15 12H3M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/></svg></button>
+      </div>
+
+      <button class="pressable relative mt-7 flex w-full items-center gap-3.5 rounded-2xl bg-[#9136c9] p-3.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.09)]">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#f5e8ff] text-[#7b2bb3]"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 16l2-6h14l2 6v4h-2v-2H5v2H3z"/><path d="M7 10l1.5-4h7L17 10"/></svg></span>
+        <span class="min-w-0 flex-1"><strong class="block truncate text-[15px]">ทีมปฏิบัติการยานพาหนะ</strong><span class="mt-0.5 block text-xs text-[#e7c8f8]">สำนักงานใหญ่</span></span>
+        <span class="flex h-10 min-w-[88px] items-center justify-center gap-2 rounded-full bg-[#7625aa] px-3 text-xs font-semibold text-[#e8c9f7]"><span class="grid h-6 w-6 place-items-center rounded-full bg-[#24bd78] text-white">5</span>ระบบ</span>
+      </button>
+    </header>
+
+    <section class="relative bg-white px-4 pb-8 pt-7">
+      <div class="grid grid-cols-4 gap-x-2 gap-y-6">
+        <button class="pressable group text-center"><span class="mx-auto grid h-[76px] w-[76px] place-items-center rounded-[20px] border border-slate-100 bg-white shadow-[0_8px_22px_rgba(35,49,70,.07)]"><img class="module-art h-[66px] w-[70px] object-contain" src="assets/vam-icons/fleet-3d.png" alt="" /></span><span class="mt-2 block text-[12px] font-semibold leading-4">Fleet<br>Management</span></button>
+        <button class="pressable group text-center"><span class="mx-auto grid h-[76px] w-[76px] place-items-center rounded-[20px] border border-slate-100 bg-white shadow-[0_8px_22px_rgba(35,49,70,.07)]"><img class="module-art h-[62px] w-[68px] object-contain" src="assets/vam-icons/booking-3d.png" alt="" /></span><span class="mt-2 block text-[12px] font-semibold leading-4">การขอ<br>ใช้รถ</span></button>
+        <button class="pressable group text-center"><span class="mx-auto grid h-[76px] w-[76px] place-items-center rounded-[20px] border border-slate-100 bg-white shadow-[0_8px_22px_rgba(35,49,70,.07)]"><img class="module-art h-[64px] w-[68px] object-contain" src="assets/vam-icons/ai-3d.png" alt="" /></span><span class="mt-2 block text-[12px] font-semibold leading-4">VAM AI</span></button>
+        <button class="pressable group relative text-center"><span class="mx-auto grid h-[76px] w-[76px] place-items-center rounded-[20px] border border-slate-100 bg-white shadow-[0_8px_22px_rgba(35,49,70,.07)]"><img class="module-art h-[64px] w-[68px] object-contain" src="assets/vam-icons/repair-3d.png" alt="" /></span><span class="absolute right-0 top-[-5px] grid h-6 min-w-6 place-items-center rounded-full bg-[#ff5d3d] px-1 text-[11px] font-bold text-white ring-2 ring-[#f7f8fb]" data-testid="repair-notification-badge">2</span><span class="mt-2 block text-[12px] font-semibold leading-4">แจ้งซ่อม</span></button>
+        <button class="pressable group text-center"><span class="mx-auto grid h-[76px] w-[76px] place-items-center rounded-[20px] border border-slate-100 bg-white shadow-[0_8px_22px_rgba(35,49,70,.07)]"><img class="module-art h-[64px] w-[68px] object-contain" src="assets/vam-icons/permissions-3d.png" alt="" /></span><span class="mt-2 block text-[12px] font-semibold leading-4">จัดการ<br>สิทธิ์</span></button>
+        <button class="pressable group text-center"><span class="mx-auto grid h-[76px] w-[76px] place-items-center rounded-[20px] border border-dashed border-slate-200 bg-slate-50 text-slate-300"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14"/></svg></span><span class="mt-2 block text-[12px] font-semibold leading-4 text-slate-400">เพิ่มเติม</span></button>
+      </div>
+
+    </section>
+
+    <button class="telegram-fab pressable fixed bottom-5 left-5 z-30 flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-[#269ed1] px-5 font-semibold text-white shadow-[0_14px_32px_rgba(38,158,209,.3)]" data-testid="executive-telegram"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 3L9 15M21 3l-7 18-5-6-6-3z"/></svg>เชื่อมต่อ Telegram</button>
+  </main>
+</body>
+</html>
