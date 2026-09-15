@@ -9,20 +9,25 @@
   <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans Thai','ui-sans-serif','system-ui','sans-serif']}}}}</script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
-    :root{color-scheme:light;--brand:#17365f;--brand-soft:#a9ccff;--action:#2f6fbf;--tint:#edf4ff;--surface:#f1f4f8;--outer:#e8edf4;--success:#0f8b78;--warning:#d97706;--danger:#d92d20;--shadow:rgba(7,23,44,.18)}*{-webkit-tap-highlight-color:transparent}
+    :root{color-scheme:light;--brand:#17365f;--brand-soft:#a9ccff;--action:#2f6fbf;--tint:#edf4ff;--surface:#f1f4f8;--outer:#e8edf4;--ink:#14253d;--muted:#64748b;--line:#dce5f0;--success:#0f8b78;--warning:#d97706;--danger:#d92d20;--shadow:rgba(7,23,44,.14)}*{-webkit-tap-highlight-color:transparent}
     body{background:var(--outer);transition:background .25s ease}
-    .safe-top{padding-top:max(16px,env(safe-area-inset-top))}.pressable{transition:transform .16s ease,background .16s ease}.pressable:active{transform:scale(.96)}
-    .app-art{filter:drop-shadow(0 5px 6px rgba(23,45,77,.13))}.app-item[hidden],.service-group[hidden]{display:none}
+    .phone{padding-bottom:max(104px,calc(80px + env(safe-area-inset-bottom)))}
+    .safe-top{padding-top:max(16px,env(safe-area-inset-top))}.pressable{min-height:44px;transition:transform .18s cubic-bezier(.22,1,.36,1),background-color .18s ease,box-shadow .18s ease}.pressable:active{transform:scale(.96)}
+    .pressable:focus{outline:none}.pressable:focus-visible,input:focus-visible{outline:3px solid #78aef2;outline-offset:3px}
+    .app-icon-frame{display:grid;width:58px;height:58px;margin-inline:auto;place-items:center;border-radius:18px;background:#f7f9fc;border:1px solid #e8eef6;overflow:visible}
+    .app-icon-frame .app-art,.app-icon-frame.app-art{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 4px 5px rgba(23,45,77,.12))}
+    .app-item[hidden],.service-group[hidden]{display:none}
+    @media(hover:hover){.pressable:hover{background-color:#f5f8fc}.header-action:hover{background-color:rgba(255,255,255,.16)}.telegram-fab:hover{box-shadow:0 16px 34px rgba(42,161,213,.36);transform:translateY(-2px)}}
     @media(min-width:560px){.phone{width:430px;min-height:900px;margin:24px auto;border-radius:42px;overflow:hidden;box-shadow:0 30px 80px rgba(24,39,64,.2)}.telegram-fab{left:calc(50% - 195px)!important}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important}}
   </style>
 </head>
 <body class="font-sans text-slate-900 antialiased">
-  <main class="phone relative min-h-[100svh] pb-28" style="background:var(--surface)">
+  <main class="phone relative min-h-[100svh]" style="background:var(--surface)">
     <header class="safe-top px-4 pb-4 text-white transition-colors duration-300" style="background:var(--brand)">
       <div class="flex items-center justify-between pt-2">
         <div><h1 class="text-[22px] font-bold tracking-tight">VAM <span style="color:var(--brand-soft)">Workspace</span></h1><p class="mt-0.5 text-[11px] text-white/60">Vehicle Analysis Management</p></div>
-        <div class="flex gap-2"><button class="pressable relative grid h-10 w-10 place-items-center rounded-full bg-white/10" aria-label="การแจ้งเตือน"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-[#ffc857] ring-2" style="--tw-ring-color:var(--brand)"></span></button><button class="pressable grid h-10 w-10 place-items-center rounded-full bg-white/10" aria-label="ออกจากระบบ"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 17l5-5-5-5M15 12H3M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/></svg></button></div>
+        <div class="flex gap-2"><button class="header-action pressable relative grid h-11 w-11 place-items-center rounded-full bg-white/10" aria-label="การแจ้งเตือน"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-[#ffc857] ring-2" style="--tw-ring-color:var(--brand)"></span></button><button class="header-action pressable grid h-11 w-11 place-items-center rounded-full bg-white/10" aria-label="ออกจากระบบ"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 17l5-5-5-5M15 12H3M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/></svg></button></div>
       </div>
       <label class="mt-5 flex h-12 items-center gap-3 rounded-2xl bg-white px-4 text-slate-500" style="box-shadow:0 9px 24px var(--shadow)"><svg class="h-5 w-5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="app-search" type="search" class="w-full bg-transparent text-sm outline-none placeholder:text-slate-400" placeholder="ค้นหาระบบและบริการ" autocomplete="off" /><button type="button" class="grid h-8 w-8 place-items-center rounded-full" style="background:var(--tint);color:var(--brand)" aria-label="สแกน"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5M8 8h3v3H8zM14 8h2v2h-2zM8 14h2v2H8zM13 13h3v3h-3z"/></svg></button></label>
     </header>
@@ -30,10 +35,10 @@
     <section class="px-4 pt-5">
       <div class="mb-3 flex items-center justify-between"><h2 class="text-[17px] font-bold">ใช้ล่าสุด</h2><button class="text-xs font-semibold" style="color:var(--action)">แก้ไข</button></div>
       <div class="grid grid-cols-4 rounded-[22px] bg-white px-2 py-4 shadow-[0_5px_18px_rgba(33,49,72,.05)]">
-        <button class="pressable text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/fleet-3d.png" alt=""/><span class="mt-1.5 block text-[11px] font-medium">Fleet</span></button>
-        <button class="pressable text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/repair-3d.png" alt=""/><span class="mt-1.5 block text-[11px] font-medium">แจ้งซ่อม</span></button>
-        <button class="pressable text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/booking-3d.png" alt=""/><span class="mt-1.5 block text-[11px] font-medium">ขอใช้รถ</span></button>
-        <button class="pressable text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/ai-3d.png" alt=""/><span class="mt-1.5 block text-[11px] font-medium">VAM AI</span></button>
+        <button class="pressable rounded-2xl py-1 text-center"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/fleet-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium">Fleet</span></button>
+        <button class="pressable rounded-2xl py-1 text-center"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/repair-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium">แจ้งซ่อม</span></button>
+        <button class="pressable rounded-2xl py-1 text-center"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/booking-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium">ขอใช้รถ</span></button>
+        <button class="pressable rounded-2xl py-1 text-center"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/ai-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium">VAM AI</span></button>
       </div>
     </section>
 
@@ -43,25 +48,25 @@
       <article class="service-group mb-3 rounded-[22px] bg-white p-4 shadow-[0_5px_18px_rgba(33,49,72,.05)]" data-group="งานยานพาหนะ">
         <h3 class="mb-4 text-xs font-semibold text-slate-400">งานยานพาหนะ</h3>
         <div class="grid grid-cols-4 gap-y-5">
-          <button class="app-item pressable relative text-center" data-name="fleet management ภาพรวมรถ"><img class="app-art mx-auto h-14 w-16 object-contain" src="assets/vam-icons/fleet-3d.png" alt=""/><span class="mt-1 block text-[11px] font-medium leading-4">Fleet<br>Management</span></button>
-          <button class="app-item pressable text-center" data-name="การขอใช้รถ จองรถ"><img class="app-art mx-auto h-14 w-16 object-contain" src="assets/vam-icons/booking-3d.png" alt=""/><span class="mt-1 block text-[11px] font-medium leading-4">การขอ<br>ใช้รถ</span></button>
-          <button class="app-item pressable relative text-center" data-name="แจ้งซ่อม งานซ่อม"><img class="app-art mx-auto h-14 w-16 object-contain" src="assets/vam-icons/repair-3d.png" alt=""/><span class="absolute right-1 top-[-4px] grid h-5 min-w-5 place-items-center rounded-full bg-[#d92d20] px-1 text-[10px] font-bold text-white ring-2 ring-white" data-testid="repair-notification-badge">2</span><span class="mt-1 block text-[11px] font-medium">แจ้งซ่อม</span></button>
+          <button class="app-item pressable relative rounded-2xl py-1 text-center" data-name="fleet management ภาพรวมรถ"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/fleet-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium leading-4">Fleet<br>Management</span></button>
+          <button class="app-item pressable rounded-2xl py-1 text-center" data-name="การขอใช้รถ จองรถ"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/booking-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium leading-4">การขอ<br>ใช้รถ</span></button>
+          <button class="app-item pressable relative rounded-2xl py-1 text-center" data-name="แจ้งซ่อม งานซ่อม" aria-label="แจ้งซ่อม มีงานค้าง 2 รายการ"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/repair-3d.png" alt=""/></span><span class="absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-[#d92d20] px-1 text-[10px] font-bold text-white ring-2 ring-white" data-testid="repair-notification-badge">2</span><span class="mt-1.5 block text-xs font-medium">แจ้งซ่อม</span></button>
         </div>
       </article>
 
       <article class="service-group mb-3 rounded-[22px] bg-white p-4 shadow-[0_5px_18px_rgba(33,49,72,.05)]" data-group="งานสนับสนุน">
         <h3 class="mb-4 text-xs font-semibold text-slate-400">งานสนับสนุน</h3>
-        <div class="grid grid-cols-4 gap-y-5"><button class="app-item pressable text-center" data-name="vam ai ผู้ช่วย ค้นหาข้อมูล"><img class="app-art mx-auto h-14 w-16 object-contain" src="assets/vam-icons/ai-3d.png" alt=""/><span class="mt-1 block text-[11px] font-medium">VAM AI</span></button><button class="app-item pressable text-center" data-name="telegram เชื่อมต่อ"><span class="mx-auto grid h-14 w-14 place-items-center rounded-[18px] bg-[#31a8dc] text-white shadow-sm"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 3L9 15M21 3l-7 18-5-6-6-3z"/></svg></span><span class="mt-1 block text-[11px] font-medium">Telegram</span></button></div>
+        <div class="grid grid-cols-4 gap-y-5"><button class="app-item pressable rounded-2xl py-1 text-center" data-name="vam ai ผู้ช่วย ค้นหาข้อมูล"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/ai-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium">VAM AI</span></button></div>
       </article>
 
       <article class="service-group mb-3 rounded-[22px] bg-white p-4 shadow-[0_5px_18px_rgba(33,49,72,.05)]" data-group="การดูแลระบบ">
         <h3 class="mb-4 text-xs font-semibold text-slate-400">การดูแลระบบ</h3>
-        <div class="grid grid-cols-4 gap-y-5"><button class="app-item pressable text-center" data-name="จัดการสิทธิ์ ผู้ใช้งาน admin"><img class="app-art mx-auto h-14 w-16 object-contain" src="assets/vam-icons/permissions-3d.png" alt=""/><span class="mt-1 block text-[11px] font-medium leading-4">จัดการ<br>สิทธิ์</span></button><button class="app-item pressable text-center" data-name="เพิ่มเติม เร็วๆนี้"><span class="mx-auto grid h-14 w-14 place-items-center rounded-[18px] border border-dashed border-slate-200 bg-slate-50 text-slate-300"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></span><span class="mt-1 block text-[11px] font-medium text-slate-400">เพิ่มเติม</span></button></div>
+        <div class="grid grid-cols-4 gap-y-5"><button class="app-item pressable rounded-2xl py-1 text-center" data-name="จัดการสิทธิ์ ผู้ใช้งาน admin"><span class="app-icon-frame"><img class="app-art" src="assets/vam-icons/permissions-3d.png" alt=""/></span><span class="mt-1.5 block text-xs font-medium leading-4">จัดการ<br>สิทธิ์</span></button><button class="app-item pressable rounded-2xl py-1 text-center" data-name="เพิ่มเติม เร็วๆนี้"><span class="mx-auto grid h-[58px] w-[58px] place-items-center rounded-[18px] border border-dashed border-slate-300 bg-slate-50 text-slate-400"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></span><span class="mt-1.5 block text-xs font-medium text-slate-500">เพิ่มเติม</span></button></div>
       </article>
       <p id="empty-result" hidden class="rounded-[22px] bg-white px-5 py-10 text-center text-sm text-slate-500">ไม่พบระบบที่ค้นหา</p>
     </section>
 
-    <button class="telegram-fab pressable fixed bottom-5 left-5 z-30 flex min-h-[48px] items-center gap-2 rounded-full bg-[#2aa1d5] px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(42,161,213,.3)]" data-testid="executive-telegram"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 3L9 15M21 3l-7 18-5-6-6-3z"/></svg>เชื่อมต่อ Telegram</button>
+    <button class="telegram-fab pressable fixed left-5 z-30 flex min-h-[48px] items-center gap-2 rounded-full bg-[#2aa1d5] px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(42,161,213,.3)]" style="bottom:max(20px,env(safe-area-inset-bottom))" data-testid="executive-telegram"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 3L9 15M21 3l-7 18-5-6-6-3z"/></svg>เชื่อมต่อ Telegram</button>
   </main>
   <script>
     const search=document.querySelector('#app-search');
