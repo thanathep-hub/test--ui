@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f2f5fa" />
+  <title>VAM Workspace — Compact Reference</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans Thai','ui-sans-serif','system-ui','sans-serif']}}}}</script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+    :root{color-scheme:light;--navy:#182f51;--blue:#2f6fbf;--sky:#69a5ff;--canvas:#f2f5fa;--ink:#14243b;--muted:#6b7a90;--line:#e5ebf3;--danger:#d92d20;--telegram:#2aa8d8}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;background:#e7edf5;color:var(--ink)}
+    button{font:inherit}.phone{background:var(--canvas);padding-bottom:max(100px,calc(76px + env(safe-area-inset-bottom)))}
+    .safe-top{padding-top:max(14px,env(safe-area-inset-top))}.pressable{min-height:44px;transition:transform .18s cubic-bezier(.22,1,.36,1),background-color .18s ease,box-shadow .18s ease}.pressable:active{transform:scale(.96)}
+    .pressable:focus{outline:none}.pressable:focus-visible{outline:3px solid #78aef2;outline-offset:3px}
+    .app-art{filter:drop-shadow(0 4px 5px rgba(24,47,81,.12))}.service-item[hidden]{display:none}
+    .services.list-mode .service-grid{display:grid;grid-template-columns:1fr;gap:7px}.services.list-mode .service-item{display:flex;min-height:62px;align-items:center;justify-content:flex-start;gap:12px;border-radius:16px;background:#f7f9fc;padding:6px 10px;text-align:left}.services.list-mode .service-item img{margin:0;width:48px;height:48px}.services.list-mode .service-item .service-label{margin:0;text-align:left}.services.list-mode .badge{right:auto;left:48px;top:3px}
+    @media(hover:hover){.pressable:hover{background-color:#f6f8fc}.header-action:hover{background-color:rgba(255,255,255,.16)}.telegram-fab:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(42,168,216,.34)}}
+    @media(min-width:560px){.phone{width:430px;min-height:900px;margin:24px auto;border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(24,39,64,.2)}.telegram-fab{left:calc(50% - 195px)!important}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <main class="phone relative min-h-[100svh]">
+    <header class="safe-top px-4">
+      <div class="relative overflow-hidden rounded-[24px] bg-[#182f51] p-4 text-white shadow-[0_14px_34px_rgba(24,47,81,.22)]">
+        <div class="absolute -right-9 -top-16 h-40 w-40 rounded-full border-[30px] border-white/[.035]"></div>
+        <div class="relative flex items-center justify-between gap-3">
+          <div class="flex min-w-0 items-center gap-3">
+            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-white/10 ring-1 ring-white/10" aria-hidden="true">
+              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            </div>
+            <div class="min-w-0"><p class="truncate text-[18px] font-bold tracking-tight">VAM <span class="text-[#69a5ff]">Workspace</span></p><p class="mt-0.5 truncate text-[10px] text-blue-100/65">Vehicle Analysis Management</p></div>
+          </div>
+          <button class="header-action pressable grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10" aria-label="ออกจากระบบ"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M10 17l5-5-5-5M15 12H3M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"></path></svg></button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 px-1 py-4">
+        <div class="min-w-0 border-l-4 border-blue-600 pl-3"><h1 class="text-[19px] font-bold leading-tight">เลือกระบบที่ต้องการ</h1><p class="mt-0.5 text-[11px] leading-4 text-slate-500">เข้าถึงระบบบริหารจัดการยานพาหนะทั้งหมดในที่เดียว</p></div>
+        <div class="flex shrink-0 rounded-full bg-white p-1 shadow-[0_5px_16px_rgba(36,54,78,.08)]" role="group" aria-label="รูปแบบการแสดงผล">
+          <button id="grid-view" class="pressable grid h-9 min-h-9 w-9 place-items-center rounded-full bg-[#182f51] text-white" aria-label="แสดงแบบตาราง" aria-pressed="true"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></button>
+          <button id="list-view" class="pressable grid h-9 min-h-9 w-9 place-items-center rounded-full text-slate-400" aria-label="แสดงแบบรายการ" aria-pressed="false"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"></path></svg></button>
+        </div>
+      </div>
+    </header>
+
+    <section class="border-t border-slate-200/80 px-4 pt-4">
+      <div class="mb-2.5 flex items-center justify-between"><h2 class="text-[16px] font-bold">ใช้ล่าสุด</h2><button class="pressable min-h-9 rounded-lg px-1 text-xs font-semibold text-blue-600">แก้ไข</button></div>
+      <div class="grid grid-cols-4 gap-1 rounded-[22px] bg-white px-2 py-3 shadow-[0_5px_18px_rgba(33,49,72,.055)]">
+        <button class="pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/fleet-3d.png" alt=""/><span class="mt-1 block text-[10px] font-medium">Fleet</span></button>
+        <button class="pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/repair-3d.png" alt=""/><span class="mt-1 block text-[10px] font-medium">แจ้งซ่อม</span></button>
+        <button class="pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/booking-3d.png" alt=""/><span class="mt-1 block text-[10px] font-medium">ขอใช้รถ</span></button>
+        <button class="pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/ai-3d.png" alt=""/><span class="mt-1 block text-[10px] font-medium">VAM AI</span></button>
+      </div>
+    </section>
+
+    <section class="services px-4 pt-5" id="services">
+      <div class="mb-2.5 flex items-center justify-between"><h2 class="text-[18px] font-bold">บริการทั้งหมด</h2><span class="text-[11px] font-semibold text-blue-500">5 ระบบ</span></div>
+
+      <article class="service-card mb-3 rounded-[22px] bg-white p-3.5 shadow-[0_5px_18px_rgba(33,49,72,.055)]">
+        <h3 class="mb-3 text-[10px] font-semibold text-slate-400">งานยานพาหนะ</h3>
+        <div class="service-grid grid grid-cols-4 gap-1">
+          <button class="service-item pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/fleet-3d.png" alt=""/><span class="service-label mt-1 block text-[10px] font-medium leading-4">Fleet<br>Management</span></button>
+          <button class="service-item pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/booking-3d.png" alt=""/><span class="service-label mt-1 block text-[10px] font-medium leading-4">การขอ<br>ใช้รถ</span></button>
+          <button class="service-item pressable relative rounded-2xl py-1 text-center" aria-label="แจ้งซ่อม มีงานค้าง 2 รายการ"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/repair-3d.png" alt=""/><span class="badge absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-[#d92d20] px-1 text-[10px] font-bold text-white ring-2 ring-white" data-testid="repair-notification-badge">2</span><span class="service-label mt-1 block text-[10px] font-medium">แจ้งซ่อม</span></button>
+        </div>
+      </article>
+
+      <article class="service-card rounded-[22px] bg-white p-3.5 shadow-[0_5px_18px_rgba(33,49,72,.055)]">
+        <h3 class="mb-3 text-[10px] font-semibold text-slate-400">งานสนับสนุน</h3>
+        <div class="service-grid grid grid-cols-4 gap-1">
+          <button class="service-item pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/ai-3d.png" alt=""/><span class="service-label mt-1 block text-[10px] font-medium">VAM AI</span></button>
+          <button class="service-item pressable rounded-2xl py-1 text-center"><img class="app-art mx-auto h-12 w-14 object-contain" src="assets/vam-icons/permissions-3d.png" alt=""/><span class="service-label mt-1 block text-[10px] font-medium leading-4">จัดการ<br>สิทธิ์</span></button>
+        </div>
+      </article>
+    </section>
+
+    <button class="telegram-fab pressable fixed left-4 z-30 flex min-h-[48px] items-center gap-2 rounded-full bg-[#2aa8d8] px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(42,168,216,.28)]" style="bottom:max(16px,env(safe-area-inset-bottom))" data-testid="compact-reference-telegram"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 3L9 15M21 3l-7 18-5-6-6-3z"></path></svg>เชื่อมต่อ Telegram</button>
+  </main>
+
+  <script>
+    const services=document.querySelector('#services');
+    const gridButton=document.querySelector('#grid-view');
+    const listButton=document.querySelector('#list-view');
+    function setView(mode){
+      const list=mode==='list';
+      services.classList.toggle('list-mode',list);
+      gridButton.setAttribute('aria-pressed',String(!list));
+      listButton.setAttribute('aria-pressed',String(list));
+      gridButton.classList.toggle('bg-[#182f51]',!list);gridButton.classList.toggle('text-white',!list);gridButton.classList.toggle('text-slate-400',list);
+      listButton.classList.toggle('bg-[#182f51]',list);listButton.classList.toggle('text-white',list);listButton.classList.toggle('text-slate-400',!list);
+    }
+    gridButton.addEventListener('click',()=>setView('grid'));
+    listButton.addEventListener('click',()=>setView('list'));
+  </script>
+</body>
+</html>
