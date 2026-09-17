@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>เติมน้ำมัน — VAM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ["'Noto Sans Thai'", 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+    colors: {
+      fuel: { 50:'#fff8f6', 100:'#fff1ef', 200:'#ffd2cc', 600:'#e1251b', 700:'#b81b13', deep:'#8f3000', orange:'#ff6a00' },
+      ink: { DEFAULT:'#1a1a1a', soft:'#65656b', line:'#f0f0f2', field:'#fafafb', border:'#ececef' }
+    }
+  } }
+};
+</script>
+<style>
+  body{-webkit-tap-highlight-color:transparent}
+  .scr{overflow-y:auto;scrollbar-width:none}.scr::-webkit-scrollbar{display:none}
+  .pr{transition:transform .12s ease,filter .12s ease}.pr:active{transform:scale(.97)}
+  @media(hover:hover){.pr:hover{filter:brightness(.97)}}
+  .sheet{transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+  .sheet[data-open="false"]{transform:translateY(102%)}
+  .veil{transition:opacity .22s ease}
+  input[type=date]::-webkit-calendar-picker-indicator{opacity:.5}
+</style>
+</head>
+<body class="font-sans text-ink bg-[#f5f5f7] antialiased">
+
+<!-- ═══ HOME ═══ -->
+<main id="page-home" class="scr min-h-screen pb-28">
+  <header class="bg-gradient-to-br from-fuel-orange to-fuel-600 text-white px-4 pt-12 pb-14">
+    <div class="flex items-center justify-between gap-3">
+      <a href="#" id="back-workspace" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20" aria-label="กลับไปหน้า Workspace" title="กลับไปหน้า Workspace">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <h1 class="text-[17px] font-bold">ค่าน้ำมันของฉัน</h1>
+      <button id="btn-workspace-grid" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20" aria-label="ไปที่ Workspace" title="ไปที่ Workspace">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>
+      </button>
+    </div>
+    <div class="mt-5 flex items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <span class="text-[12.5px] font-semibold text-white">เดือนนี้</span>
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-[17px] font-bold">฿</span>
+          <span id="stat-total" class="text-[36px] font-bold leading-none tracking-tight tabular-nums">0.00</span>
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-1 text-[12.5px] text-white tabular-nums">
+        <span id="stat-count">0 ครั้ง</span>
+        <span id="stat-liters">0.00 ลิตร</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="-mt-10 mx-3 flex flex-col gap-2.5">
+    <div class="bg-white rounded-2xl p-3 flex gap-2.5 shadow-[0_6px_20px_rgba(226,37,27,.12)]">
+      <button data-go="form" class="pr flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuel-orange to-fuel-600 text-white py-3.5 text-[14.5px] font-bold min-h-[48px]">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>เติมน้ำมัน
+      </button>
+      <button data-go="report" class="pr flex items-center justify-center gap-1.5 rounded-xl border border-ink-border bg-ink-field py-3.5 px-4 text-[14px] font-bold min-h-[48px]">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16"/><path d="M8 15v-4M12 15V8M16 15v-6"/></svg>รายงาน
+      </button>
+    </div>
+
+    <section class="bg-white rounded-2xl px-4 pt-3.5 pb-1.5 mb-6">
+      <div class="flex items-center justify-between gap-3 pb-1">
+        <div class="flex items-center gap-2">
+          <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+          <h2 class="text-[14.5px] font-bold">ประวัติการเติมน้ำมัน</h2>
+        </div>
+        <span class="text-[12.5px] text-ink-soft">1 กฐ 5929</span>
+      </div>
+      <div id="history"></div>
+      <button data-toast="โหลดประวัติทั้งหมด" class="pr w-full flex items-center justify-center gap-1.5 py-3.5 text-[13px] font-semibold text-ink-soft min-h-[44px]">ดูทั้งหมด
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </section>
+  </div>
+</main>
+
+<!-- ═══ FORM ═══ -->
+<main id="page-form" class="scr min-h-screen pb-32 hidden">
+  <header class="bg-gradient-to-br from-fuel-orange to-fuel-600 text-white px-4 pt-12 pb-14">
+    <div class="flex items-center justify-between gap-3">
+      <button data-go="home" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20" aria-label="ย้อนกลับ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h1 id="form-title" class="text-[17px] font-bold">เติมน้ำมัน</h1>
+      <a href="#" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20 back-workspace" aria-label="กลับไปหน้า Workspace" title="กลับไปหน้า Workspace">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <div class="-mt-11 mx-3 flex flex-col gap-2.5">
+    <div id="dup-banner" class="hidden items-center gap-2 rounded-xl bg-fuel-50 border border-fuel-200 p-3">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e1251b" stroke-width="2.2" class="shrink-0"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+      <span id="dup-banner-text" class="text-[12.5px] leading-5 text-fuel-deep"></span>
+    </div>
+
+    <div class="bg-white rounded-2xl p-4 shadow-[0_6px_20px_rgba(226,37,27,.12)]">
+      <div class="flex items-end justify-between gap-3">
+        <div class="flex flex-col gap-1">
+          <span class="text-[12.5px] font-semibold text-ink-soft">ยอดรวม</span>
+          <div class="flex items-baseline gap-1.5 text-fuel-600">
+            <span class="text-[19px] font-bold">฿</span>
+            <span id="form-total" class="text-[40px] font-bold leading-none tracking-tight tabular-nums">0.00</span>
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-1 text-[12.5px] text-ink-soft tabular-nums">
+          <span id="form-count">0 รายการ</span>
+          <span id="form-liters">0.00 ลิตร</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl overflow-hidden">
+      <button id="pick-vehicle" class="pr w-full flex items-center gap-3 px-4 py-3.5 text-left">
+        <span class="grid place-items-center w-10 h-10 rounded-xl bg-fuel-100 text-fuel-600 shrink-0">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 16v-4l2-5h12l2 5v4M7 16h10"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></svg>
+        </span>
+        <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+          <span class="text-[12.5px] font-semibold text-ink-soft">รถที่เติมน้ำมัน <span class="text-fuel-600">*</span></span>
+          <span id="f-plate" class="text-[16px] font-bold">1 กฐ 5929</span>
+          <span id="f-brand" class="text-[12.5px] text-ink-soft">HONDA</span>
+        </span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <div class="h-px bg-ink-line ml-4"></div>
+      <label class="flex items-center gap-3 px-4 py-3">
+        <span class="shrink-0 w-[104px] text-[13.5px] font-semibold">วันที่เติม <span class="text-fuel-600">*</span></span>
+        <input id="f-date" type="date" class="flex-1 min-w-0 bg-transparent outline-none text-[15px] font-semibold text-right" />
+      </label>
+      <div class="h-px bg-ink-line ml-4"></div>
+      <label class="flex items-center gap-3 px-4 py-3">
+        <span class="shrink-0 w-[104px] text-[13.5px] font-semibold">เลขไมล์ (กม.)</span>
+        <input id="f-odo" type="text" inputmode="numeric" placeholder="ไม่บังคับ" class="flex-1 min-w-0 bg-transparent outline-none text-[15px] text-right placeholder:text-[#a9a9b0]" />
+      </label>
+      <div class="h-px bg-ink-line ml-4"></div>
+      <label class="flex items-center gap-3 px-4 py-3">
+        <span class="shrink-0 w-[132px] text-[13.5px] font-semibold">ผู้ขาย / ปั๊มน้ำมัน <span class="text-fuel-600">*</span></span>
+        <input id="f-vendor" type="text" value="00748กาญจนดิษฐ์" class="flex-1 min-w-0 bg-transparent outline-none text-[15px] font-semibold text-right" />
+      </label>
+    </div>
+
+    <div class="bg-white rounded-2xl px-4 pt-3.5 pb-4 flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+          <h2 class="text-[14.5px] font-bold">รายการน้ำมัน</h2>
+        </div>
+        <span id="items-count" class="text-[12.5px] text-ink-soft">0 รายการ</span>
+      </div>
+      <div id="items" class="flex flex-col gap-2"></div>
+      <p id="items-empty" class="text-[13px] leading-5 text-ink-soft">ยังไม่มีรายการ กดเพิ่มรายการน้ำมันเพื่อกรอกชนิด ปริมาณ และราคา</p>
+      <button id="open-item-sheet" class="pr w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-fuel-600 bg-fuel-50 text-fuel-600 py-3.5 text-[14.5px] font-bold min-h-[50px]">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>เพิ่มรายการน้ำมัน
+      </button>
+    </div>
+
+    <div class="bg-white rounded-2xl px-4 pt-3.5 pb-4 flex flex-col gap-3 mb-6">
+      <div class="flex items-center gap-2">
+        <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+        <h2 class="text-[14.5px] font-bold">หลักฐาน</h2>
+      </div>
+      <label class="flex items-center gap-3">
+        <span id="receipt-label" class="shrink-0 w-[104px] text-[13.5px] font-semibold">เลขที่ใบเสร็จ</span>
+        <input id="f-receipt" type="text" placeholder="ไม่บังคับ" class="flex-1 min-w-0 bg-transparent outline-none text-[15px] text-right placeholder:text-[#a9a9b0]" />
+      </label>
+      <div class="h-px bg-ink-line"></div>
+      <label class="flex items-center gap-3">
+        <span class="shrink-0 w-[104px] text-[13.5px] font-semibold">หมายเหตุ</span>
+        <input id="f-note" type="text" placeholder="ไม่บังคับ" class="flex-1 min-w-0 bg-transparent outline-none text-[15px] text-right placeholder:text-[#a9a9b0]" />
+      </label>
+      <div class="h-px bg-ink-line"></div>
+      <div class="flex flex-col gap-2.5">
+        <span class="text-[13.5px] font-semibold">รูปใบเสร็จ</span>
+        <div class="flex gap-2.5 flex-wrap items-start">
+          <input id="f-photo" type="file" accept="image/*" class="hidden" />
+          <button data-photo class="pr flex flex-col items-center justify-center gap-1.5 w-[84px] h-[84px] rounded-xl border border-dashed border-[#d9d9de] bg-ink-field text-ink-soft">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V6a2 2 0 012-2h2.5l1-2h5l1 2H19a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/><circle cx="12.5" cy="12.5" r="3.5"/></svg>
+            <span class="text-[12px] font-semibold">ถ่ายรูป</span>
+          </button>
+          <button data-photo class="pr flex flex-col items-center justify-center gap-1.5 w-[84px] h-[84px] rounded-xl border border-dashed border-[#d9d9de] bg-ink-field text-ink-soft">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+            <span class="text-[12px] font-semibold">เลือกไฟล์</span>
+          </button>
+          <div id="photo-chip" class="hidden items-center gap-2 rounded-xl bg-fuel-100 text-fuel-deep px-3 py-2 text-[12.5px] font-semibold max-w-[150px]">
+            <span id="photo-name" class="truncate"></span>
+            <button id="photo-clear" class="pr grid place-items-center w-5 h-5 rounded-full bg-white text-fuel-600 shrink-0" aria-label="ลบรูป">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fixed left-0 right-0 bottom-0 flex items-center gap-3 px-4 pt-3 pb-5 bg-white/95 backdrop-blur shadow-[0_-6px_20px_rgba(24,39,64,.08)]">
+    <div class="flex flex-col gap-0.5 min-w-0">
+      <span class="text-[12px] text-ink-soft">ยอดรวม</span>
+      <span class="text-[22px] font-bold text-fuel-600 tabular-nums"><span id="bar-total">0.00</span> <span class="text-[13px]">บาท</span></span>
+    </div>
+    <button id="save-refuel" class="pr flex-1 flex items-center justify-center rounded-full bg-gradient-to-r from-fuel-orange to-fuel-600 text-white py-4 text-[15.5px] font-bold min-h-[50px]">บันทึกการเติมน้ำมัน</button>
+  </div>
+</main>
+
+<!-- ═══ REPORT ═══ -->
+<main id="page-report" class="min-h-screen pb-10 hidden">
+  <header class="bg-gradient-to-br from-fuel-orange to-fuel-600 text-white px-4 pt-12 pb-14">
+    <div class="flex items-center justify-between gap-3">
+      <button data-go="home" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20" aria-label="ย้อนกลับ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h1 class="text-[17px] font-bold">รายงานค่าน้ำมัน</h1>
+      <button data-toast="ส่งออกรายงานเป็นไฟล์" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20" aria-label="ส่งออก">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3"/></svg>
+      </button>
+    </div>
+    <div class="mt-5 flex items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <span id="rp-range-label" class="text-[12.5px] font-semibold text-white">เดือนนี้</span>
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-[17px] font-bold">฿</span>
+          <span id="rp-total" class="text-[36px] font-bold leading-none tracking-tight tabular-nums">0.00</span>
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-1 text-[12.5px] text-white tabular-nums">
+        <span id="rp-count">0 ครั้ง</span>
+        <span id="rp-liters">0.00 ลิตร</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="-mt-10 mx-3 flex flex-col gap-2.5">
+    <div id="rp-ranges" class="bg-white rounded-2xl p-2.5 flex gap-2 shadow-[0_6px_20px_rgba(226,37,27,.12)]"></div>
+
+    <div class="bg-white rounded-2xl px-4 pt-3.5 pb-4 grid grid-cols-3 gap-3">
+      <div class="flex flex-col gap-1">
+        <span class="text-[12px] text-ink-soft">เฉลี่ย/ครั้ง</span>
+        <span id="rp-avg" class="text-[17px] font-bold tabular-nums">0.00</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-[12px] text-ink-soft">ราคาเฉลี่ย/ลิตร</span>
+        <span id="rp-ppl" class="text-[17px] font-bold tabular-nums">0.00</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-[12px] text-ink-soft">ครั้งล่าสุด</span>
+        <span id="rp-last" class="text-[17px] font-bold">—</span>
+      </div>
+    </div>
+
+    <section class="bg-white rounded-2xl px-4 pt-3.5 pb-4 flex flex-col gap-3.5">
+      <div class="flex items-center gap-2">
+        <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+        <h2 class="text-[14.5px] font-bold">ค่าน้ำมันรายเดือน</h2>
+      </div>
+      <div id="rp-bars" class="flex items-end gap-2.5 h-[132px]"></div>
+    </section>
+
+    <section class="bg-white rounded-2xl px-4 pt-3.5 pb-4 flex flex-col gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+        <h2 class="text-[14.5px] font-bold">แยกตามชนิดน้ำมัน</h2>
+      </div>
+      <div id="rp-types" class="flex flex-col gap-3"></div>
+    </section>
+
+    <section class="bg-white rounded-2xl px-4 pt-3.5 pb-1.5 mb-6">
+      <div class="flex items-center gap-2 pb-1">
+        <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+        <h2 class="text-[14.5px] font-bold">แยกตามปั๊มน้ำมัน</h2>
+      </div>
+      <div id="rp-vendors"></div>
+    </section>
+  </div>
+</main>
+
+<!-- ═══ DETAIL ═══ -->
+<main id="page-detail" class="min-h-screen pb-28 hidden">
+  <header class="bg-gradient-to-br from-fuel-orange to-fuel-600 text-white px-4 pt-12 pb-14">
+    <div class="flex items-center justify-between gap-3">
+      <button data-go="home" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20" aria-label="ย้อนกลับ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h1 class="text-[17px] font-bold">รายละเอียดการเติมน้ำมัน</h1>
+      <button data-toast="แชร์รายการนี้" class="pr grid place-items-center w-9 h-9 rounded-full bg-white/20" aria-label="แชร์">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14V4M8 8l4-4 4 4"/><path d="M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4"/></svg>
+      </button>
+    </div>
+    <div class="mt-5 flex items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <span id="dt-date" class="text-[12.5px] font-semibold text-white">—</span>
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-[17px] font-bold">฿</span>
+          <span id="dt-amt" class="text-[36px] font-bold leading-none tracking-tight tabular-nums">0.00</span>
+        </div>
+      </div>
+      <span id="dt-status" class="rounded-full bg-white/20 px-3 py-1.5 text-[12px] font-bold">บันทึกแล้ว</span>
+    </div>
+  </header>
+
+  <div class="-mt-10 mx-3 flex flex-col gap-2.5">
+    <div class="bg-white rounded-2xl px-4 pt-3.5 pb-1 shadow-[0_6px_20px_rgba(226,37,27,.12)]">
+      <div class="flex items-center gap-2 pb-2.5">
+        <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+        <h2 class="text-[14.5px] font-bold">ข้อมูลการเติม</h2>
+      </div>
+      <div id="dt-info" class="flex flex-col"></div>
+    </div>
+
+    <section class="bg-white rounded-2xl px-4 pt-3.5 pb-4 flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+          <h2 class="text-[14.5px] font-bold">รายการน้ำมัน</h2>
+        </div>
+        <span id="dt-items-count" class="text-[12.5px] text-ink-soft">0 รายการ</span>
+      </div>
+      <div id="dt-items" class="flex flex-col gap-2"></div>
+      <div class="flex items-center gap-3 rounded-xl bg-ink-field px-3 py-2.5">
+        <span class="flex-1 text-[13px] font-semibold text-ink-soft">ยอดรวม</span>
+        <span class="text-[17px] font-bold text-fuel-600 tabular-nums"><span id="dt-sum">0.00</span> บาท</span>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl px-4 pt-3.5 pb-4 flex flex-col gap-3 mb-6">
+      <div class="flex items-center gap-2">
+        <span class="w-[3px] h-[15px] rounded-sm bg-fuel-600"></span>
+        <h2 class="text-[14.5px] font-bold">หลักฐาน</h2>
+      </div>
+      <div id="dt-proof" class="flex flex-col"></div>
+      <button data-toast="ยังไม่มีรูปใบเสร็จแนบไว้" class="pr flex flex-col items-center justify-center gap-1.5 w-[84px] h-[84px] rounded-xl border border-dashed border-[#d9d9de] bg-ink-field text-ink-soft">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V6a2 2 0 012-2h2.5l1-2h5l1 2H19a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/><circle cx="12.5" cy="12.5" r="3.5"/></svg>
+        <span class="text-[12px] font-semibold">ดูใบเสร็จ</span>
+      </button>
+    </section>
+  </div>
+
+  <div class="fixed left-0 right-0 bottom-0 flex items-center gap-2.5 px-4 pt-3 pb-5 bg-white/95 backdrop-blur shadow-[0_-6px_20px_rgba(24,39,64,.08)]">
+    <button id="dt-delete" class="pr grid place-items-center w-[50px] h-[50px] rounded-full border border-ink-border bg-ink-field text-fuel-600" aria-label="ลบรายการ">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+    </button>
+    <button id="dt-edit" class="pr flex items-center justify-center rounded-full border border-ink-border bg-ink-field px-5 py-4 text-[14.5px] font-bold min-h-[50px]">แก้ไข</button>
+    <button id="dt-dup" class="pr flex-1 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuel-orange to-fuel-600 text-white py-4 text-[15.5px] font-bold min-h-[50px]">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 12a8 8 0 0113.7-5.7L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 01-13.7 5.7L4 16M4 20v-4h4"/></svg>ทำซ้ำรายการ
+    </button>
+  </div>
+</main>
+
+<!-- ═══ SHEET: add item ═══ -->
+<div id="veil-item" class="veil fixed inset-0 bg-[#141418]/45 hidden z-40"></div>
+<div id="sheet-item" data-open="false" class="sheet fixed left-0 right-0 bottom-0 z-50 bg-white rounded-t-2xl px-4 pt-2 pb-5 hidden flex-col gap-3.5 shadow-[0_-12px_40px_rgba(20,20,24,.28)]">
+  <div class="grid place-items-center pt-1 pb-0.5"><span class="w-9 h-1 rounded-sm bg-[#e3e3e7]"></span></div>
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-[16.5px] font-bold">เพิ่มรายการน้ำมัน</h3>
+    <button data-close="item" class="pr grid place-items-center w-8 h-8 rounded-full bg-[#f3f3f5] text-ink-soft" aria-label="ปิด">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div id="fuel-types" class="flex gap-2 flex-wrap"></div>
+  <label class="flex items-center gap-2.5 bg-ink-field rounded-xl p-3">
+    <span class="shrink-0 text-[12.5px] text-ink-soft">ชนิดน้ำมัน</span>
+    <input id="i-type" type="text" placeholder="เช่น ดีเซล / เบนซิน 95" class="flex-1 min-w-0 bg-transparent outline-none text-[14px] text-right placeholder:text-[#a9a9b0]" />
+  </label>
+  <div class="flex items-end justify-between gap-3">
+    <span class="text-[13.5px] font-semibold text-ink-soft">ปริมาณ (ลิตร)</span>
+    <div class="flex items-baseline gap-1.5">
+      <input id="i-liters" type="text" inputmode="decimal" placeholder="0.00" class="w-[130px] bg-transparent outline-none text-[32px] font-bold text-right tabular-nums tracking-tight placeholder:text-[#d4d4d9]" />
+      <span class="text-[14px] font-semibold text-ink-soft">ลิตร</span>
+    </div>
+  </div>
+  <div id="liter-chips" class="flex gap-2"></div>
+  <div class="h-px bg-ink-line"></div>
+  <label class="flex items-center justify-between gap-3">
+    <span class="text-[13.5px] font-semibold text-ink-soft">ราคา/ลิตร (บาท)</span>
+    <input id="i-price" type="text" inputmode="decimal" placeholder="0.00" class="w-[130px] bg-transparent outline-none text-[19px] font-bold text-right tabular-nums placeholder:text-[#d4d4d9]" />
+  </label>
+  <div class="h-px bg-ink-line"></div>
+  <label class="flex items-center gap-3">
+    <span class="shrink-0 text-[13.5px] font-semibold text-ink-soft">หมายเหตุรายการ</span>
+    <input id="i-note" type="text" placeholder="ไม่บังคับ" class="flex-1 min-w-0 bg-transparent outline-none text-[14px] text-right placeholder:text-[#a9a9b0]" />
+  </label>
+  <div class="flex items-center justify-between gap-3 rounded-xl bg-ink-field px-3 py-2.5">
+    <span class="text-[13px] font-semibold text-ink-soft">รวมรายการนี้</span>
+    <span class="text-[17px] font-bold text-fuel-600 tabular-nums"><span id="i-sum">0.00</span> บาท</span>
+  </div>
+  <button id="add-item" class="pr w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuel-orange to-fuel-600 text-white py-4 text-[15.5px] font-bold min-h-[50px]">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>เพิ่มรายการ
+  </button>
+</div>
+
+<!-- ═══ SHEET: duplicate ═══ -->
+<div id="veil-dup" class="veil fixed inset-0 bg-[#141418]/45 hidden z-40"></div>
+<div id="sheet-dup" data-open="false" class="sheet fixed left-0 right-0 bottom-0 z-50 bg-white rounded-t-2xl px-4 pt-2 pb-5 hidden flex-col gap-3.5 shadow-[0_-12px_40px_rgba(20,20,24,.28)]">
+  <div class="grid place-items-center pt-1 pb-0.5"><span class="w-9 h-1 rounded-sm bg-[#e3e3e7]"></span></div>
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-[16.5px] font-bold">ทำซ้ำรายการ</h3>
+    <button data-close="dup" class="pr grid place-items-center w-8 h-8 rounded-full bg-[#f3f3f5] text-ink-soft" aria-label="ปิด">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="rounded-xl bg-ink-field px-3.5 py-3 flex flex-col gap-1.5">
+    <div class="flex items-center justify-between gap-3">
+      <span id="d-fuel" class="text-[14px] font-bold"></span>
+      <span class="text-[15px] font-bold tabular-nums"><span id="d-amt"></span> บาท</span>
+    </div>
+    <div id="d-qty" class="text-[12.5px] text-ink-soft tabular-nums"></div>
+    <div id="d-vendor" class="text-[12.5px] text-ink-soft"></div>
+    <div class="text-[12px] text-ink-soft">ข้อมูลรถ ปั๊ม และรายการน้ำมัน คัดลอกมาให้แล้ว</div>
+  </div>
+  <div class="flex items-center gap-2 rounded-xl bg-fuel-50 border border-fuel-200 px-3 py-2.5">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e1251b" stroke-width="2.2" class="shrink-0"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+    <span class="text-[12.5px] leading-5 text-fuel-deep">ต้องเปลี่ยนวันที่เติมและเลขที่ใบเสร็จก่อนบันทึก</span>
+  </div>
+  <label class="flex flex-col gap-1.5">
+    <span class="text-[13px] font-bold">วันที่เติม <span class="text-fuel-600">*</span></span>
+    <input id="d-date" type="date" class="w-full rounded-xl border border-fuel-200 bg-fuel-50 p-3 outline-none text-[15px] font-semibold" />
+  </label>
+  <label class="flex flex-col gap-1.5">
+    <span class="text-[13px] font-bold">เลขที่ใบเสร็จ <span class="text-fuel-600">*</span></span>
+    <input id="d-receipt" type="text" placeholder="กรอกเลขใบเสร็จใหม่" class="w-full rounded-xl border border-fuel-200 bg-fuel-50 p-3 outline-none text-[15px] placeholder:text-[#9a6259]" />
+  </label>
+  <label class="flex flex-col gap-1.5">
+    <span class="text-[13px] font-bold">เลขไมล์ (กม.)</span>
+    <input id="d-odo" type="text" inputmode="numeric" placeholder="ไม่บังคับ" class="w-full rounded-xl border border-ink-border bg-ink-field p-3 outline-none text-[15px] placeholder:text-[#a9a9b0]" />
+  </label>
+  <div class="flex gap-2.5">
+    <button id="dup-edit" class="pr flex items-center justify-center rounded-full border border-ink-border bg-ink-field px-4 py-4 text-[14.5px] font-bold min-h-[50px]">แก้ทั้งรายการ</button>
+    <button id="dup-confirm" class="pr flex-1 flex items-center justify-center rounded-full bg-gradient-to-r from-fuel-orange to-fuel-600 text-white py-4 text-[15.5px] font-bold min-h-[50px]">ยืนยันทำซ้ำ</button>
+  </div>
+</div>
+
+<div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-24 z-[60] hidden items-center gap-2 rounded-full bg-[#1a1a1a]/92 text-white px-4 py-2.5 text-[13px] font-semibold shadow-lg"></div>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s);
+const fmt = n => n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const today = () => new Date().toISOString().slice(0,10);
+const thDate = iso => { const d = new Date(iso + 'T00:00:00'); return d.getDate() + ' ' + TH_M[d.getMonth()] + ' ' + (d.getFullYear()+543); };
+
+const FUEL_TYPES = ['เบนซิน 95','แก๊สโซฮอล์ 91','ดีเซล B5','อื่น ๆ'];
+const LITER_CHIPS = ['10','20','40','เต็มถัง'];
+
+const state = {
+  page: 'home',
+  range: 'เดือนนี้',
+  viewFrom: null,
+  vehicle: { plate: '1 กฐ 5929', brand: 'HONDA' },
+  items: [],
+  dupFrom: null,
+  photo: null,
+  records: [
+    { date:'2026-09-16', vendor:'00748กาญจนดิษฐ์', fuel:'น้ำมันเบนซิน + ดีเซล B5', liters:2, amt:62.41, receipt:'RC-26091601',
+      items:[{type:'น้ำมันเบนซิน', liters:1, price:35.11},{type:'น้ำมันดีเซล B5', liters:1, price:27.30}] },
+    { date:'2026-09-02', vendor:'ปั๊ม ปตท. บ้านดอน', fuel:'น้ำมันดีเซล B5', liters:32.5, amt:887.25, receipt:'RC-26090204',
+      items:[{type:'น้ำมันดีเซล B5', liters:32.5, price:27.30}] },
+    { date:'2026-08-24', vendor:'00748กาญจนดิษฐ์', fuel:'น้ำมันเบนซิน 95', liters:8.2, amt:290.28, receipt:'RC-26082411',
+      items:[{type:'น้ำมันเบนซิน 95', liters:8.2, price:35.40}] }
+  ]
+};
+
+/* ── toast ── */
+let toastT;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.remove('hidden'); t.classList.add('flex');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { t.classList.add('hidden'); t.classList.remove('flex'); }, 1900);
+}
+
+/* ── navigation ── */
+const PAGES = ['home','form','report','detail'];
+function go(page) {
+  state.page = page;
+  PAGES.forEach(p => $('#page-' + p).classList.toggle('hidden', p !== page));
+  if (page === 'report') renderReport();
+  window.scrollTo(0, 0);
+}
+
+/* ── sheets ── */
+function openSheet(name) {
+  const sheet = $('#sheet-' + name), veil = $('#veil-' + name);
+  sheet.classList.remove('hidden'); sheet.classList.add('flex');
+  veil.classList.remove('hidden');
+  requestAnimationFrame(() => sheet.dataset.open = 'true');
+}
+function closeSheet(name) {
+  const sheet = $('#sheet-' + name), veil = $('#veil-' + name);
+  sheet.dataset.open = 'false';
+  veil.classList.add('hidden');
+  setTimeout(() => { sheet.classList.add('hidden'); sheet.classList.remove('flex'); }, 240);
+}
+
+/* ── home render ── */
+function renderHome() {
+  const now = new Date(today());
+  const monthly = state.records.filter(r => { const d = new Date(r.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
+  $('#stat-total').textContent = fmt(monthly.reduce((s,r) => s + r.amt, 0));
+  $('#stat-count').textContent = monthly.length + ' ครั้ง';
+  $('#stat-liters').textContent = fmt(monthly.reduce((s,r) => s + r.liters, 0)) + ' ลิตร';
+
+  $('#history').innerHTML = state.records.map((r, i) => {
+    const parts = thDate(r.date).split(' ');
+    const badge = r.isNew ? '<span class="rounded-full bg-fuel-100 text-fuel-600 px-2 py-0.5 text-[11.5px] font-bold">ทำซ้ำแล้ว</span>' : '';
+    const qty = r.items.length > 1
+      ? fmt(r.liters) + ' ลิตร · ' + r.items.length + ' รายการ'
+      : fmt(r.items[0].liters) + ' ลิตร × ' + fmt(r.items[0].price) + ' บาท';
+    return `<div class="flex items-center gap-3 py-3.5 ${i === state.records.length-1 ? '' : 'border-b border-ink-line'}">
+      <span class="flex flex-col items-center justify-center w-11 h-11 rounded-xl bg-ink-field shrink-0">
+        <span class="text-[15px] font-bold leading-none">${parts[0]}</span>
+        <span class="text-[10.5px] font-semibold text-ink-soft">${parts[1]}</span>
+      </span>
+      <button data-view="${i}" class="pr flex-1 min-w-0 flex flex-col gap-0.5 text-left">
+        <span class="flex items-center gap-2 text-[14.5px] font-bold">${r.fuel}${badge}</span>
+        <span class="text-[12.5px] text-ink-soft tabular-nums">${qty}</span>
+        <span class="text-[12.5px] text-ink-soft truncate">${r.vendor}</span>
+      </button>
+      <span class="flex flex-col items-end gap-1.5 shrink-0">
+        <span class="text-[15.5px] font-bold tabular-nums">${fmt(r.amt)}</span>
+        <button data-dup="${i}" class="pr flex items-center gap-1.5 rounded-full border border-fuel-200 bg-fuel-50 text-fuel-600 px-2.5 py-1.5 text-[12.5px] font-bold min-h-[34px]">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 12a8 8 0 0113.7-5.7L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 01-13.7 5.7L4 16M4 20v-4h4"/></svg>ทำซ้ำ
+        </button>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+/* ── form render ── */
+function formTotals() {
+  const liters = state.items.reduce((s,i) => s + i.liters, 0);
+  const amt = state.items.reduce((s,i) => s + i.liters * i.price, 0);
+  return { liters, amt };
+}
+function renderForm() {
+  const { liters, amt } = formTotals();
+  $('#form-total').textContent = fmt(amt);
+  $('#bar-total').textContent = fmt(amt);
+  $('#form-count').textContent = state.items.length + ' รายการ';
+  $('#items-count').textContent = state.items.length + ' รายการ';
+  $('#form-liters').textContent = fmt(liters) + ' ลิตร';
+  $('#f-plate').textContent = state.vehicle.plate;
+  $('#f-brand').textContent = state.vehicle.brand;
+  $('#items-empty').classList.toggle('hidden', state.items.length > 0);
+  $('#items').innerHTML = state.items.map((it, i) => {
+    const tag = /ดีเซล/.test(it.type) ? 'B5' : (it.type.match(/\d{2}/) || ['95'])[0];
+    const tagColor = /ดีเซล/.test(it.type) ? 'text-[#146b4c]' : 'text-fuel-600';
+    return `<div class="flex items-center gap-2.5 bg-ink-field rounded-xl px-3 py-2.5">
+      <span class="grid place-items-center w-[30px] h-[30px] rounded-lg bg-white ${tagColor} text-[12px] font-bold shrink-0">${tag}</span>
+      <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+        <span class="text-[14px] font-bold truncate">${it.type}</span>
+        <span class="text-[12.5px] text-ink-soft tabular-nums">${fmt(it.liters)} ลิตร × ${fmt(it.price)} บาท${it.note ? ' · ' + it.note : ''}</span>
+      </span>
+      <span class="text-[15px] font-bold tabular-nums">${fmt(it.liters * it.price)}</span>
+      <button data-del="${i}" class="pr grid place-items-center w-[26px] h-[26px] rounded-full bg-fuel-100 text-fuel-600 shrink-0" aria-label="ลบรายการ">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+/* ── item sheet ── */
+function renderChips() {
+  $('#fuel-types').innerHTML = FUEL_TYPES.map((t,i) =>
+    `<button data-ftype="${t}" class="pr flex items-center rounded-lg px-3.5 py-2 text-[13px] font-semibold min-h-[38px] ${i===0 ? 'bg-fuel-600 text-white font-bold' : 'border border-ink-border bg-ink-field'}">${t}</button>`).join('');
+  $('#liter-chips').innerHTML = LITER_CHIPS.map(c =>
+    `<button data-lchip="${c}" class="pr flex-1 flex items-center justify-center rounded-lg border border-ink-border bg-ink-field py-2 text-[13px] font-semibold min-h-[38px]">${c}</button>`).join('');
+}
+function selectFuelType(t) {
+  $('#i-type').value = t === 'อื่น ๆ' ? '' : t;
+  [...$('#fuel-types').children].forEach(b => {
+    const on = b.dataset.ftype === t;
+    b.className = 'pr flex items-center rounded-lg px-3.5 py-2 text-[13px] font-semibold min-h-[38px] ' + (on ? 'bg-fuel-600 text-white font-bold' : 'border border-ink-border bg-ink-field');
+  });
+  if (t === 'อื่น ๆ') $('#i-type').focus();
+  itemSum();
+}
+function itemSum() {
+  const l = parseFloat($('#i-liters').value) || 0, p = parseFloat($('#i-price').value) || 0;
+  $('#i-sum').textContent = fmt(l * p);
+}
+function resetItemSheet() {
+  $('#i-liters').value = ''; $('#i-price').value = ''; $('#i-note').value = '';
+  selectFuelType(FUEL_TYPES[0]);
+}
+
+/* ── duplicate ── */
+function openDup(i) {
+  state.dupFrom = i;
+  const r = state.records[i];
+  $('#d-fuel').textContent = r.fuel;
+  $('#d-amt').textContent = fmt(r.amt);
+  $('#d-qty').textContent = fmt(r.liters) + ' ลิตร · ' + r.items.length + ' รายการ';
+  $('#d-vendor').textContent = state.vehicle.plate + ' — ' + state.vehicle.brand + ' · ' + r.vendor;
+  $('#d-date').value = today();
+  $('#d-receipt').value = '';
+  $('#d-odo').value = '';
+  openSheet('dup');
+}
+function markInvalid(el) {
+  el.classList.add('ring-2','ring-fuel-600');
+  setTimeout(() => el.classList.remove('ring-2','ring-fuel-600'), 1400);
+  el.focus();
+}
+
+/* ── events ── */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go],[data-dup],[data-del],[data-view],[data-range],[data-close],[data-toast],[data-ftype],[data-lchip],[data-photo],.back-workspace,#back-workspace');
+  if (!t) return;
+  if (t.matches('.back-workspace,#back-workspace')) { e.preventDefault(); toast('กลับไปหน้า VAM Workspace'); return; }
+  if (t.dataset.go) { if (t.dataset.go === 'form' && !state.dupFrom) { /* keep */ } go(t.dataset.go); if (t.dataset.go === 'home') { state.dupFrom = null; $('#dup-banner').classList.add('hidden'); $('#dup-banner').classList.remove('flex'); } return; }
+  if (t.dataset.dup !== undefined) { openDup(+t.dataset.dup); return; }
+  if (t.dataset.view !== undefined) { openDetail(+t.dataset.view); return; }
+  if (t.dataset.range) { state.range = t.dataset.range; renderReport(); return; }
+  if (t.dataset.del !== undefined) { state.items.splice(+t.dataset.del, 1); renderForm(); toast('ลบรายการแล้ว'); return; }
+  if (t.dataset.close) { closeSheet(t.dataset.close); return; }
+  if (t.dataset.toast) { toast(t.dataset.toast); return; }
+  if (t.dataset.ftype) { selectFuelType(t.dataset.ftype); return; }
+  if (t.dataset.lchip) {
+    const v = t.dataset.lchip;
+    $('#i-liters').value = v === 'เต็มถัง' ? '45.00' : parseFloat(v).toFixed(2);
+    itemSum(); return;
+  }
+  if (t.hasAttribute('data-photo')) { $('#f-photo').click(); return; }
+});
+
+$('#veil-item').addEventListener('click', () => closeSheet('item'));
+$('#veil-dup').addEventListener('click', () => closeSheet('dup'));
+
+$('#pick-vehicle').addEventListener('click', () => toast('เลือกรถจากทะเบียนในระบบ'));
+
+$('#open-item-sheet').addEventListener('click', () => { resetItemSheet(); openSheet('item'); });
+$('#i-liters').addEventListener('input', itemSum);
+$('#i-price').addEventListener('input', itemSum);
+
+$('#add-item').addEventListener('click', () => {
+  const type = $('#i-type').value.trim();
+  const liters = parseFloat($('#i-liters').value);
+  const price = parseFloat($('#i-price').value);
+  if (!type) return markInvalid($('#i-type'));
+  if (!liters) return markInvalid($('#i-liters'));
+  if (!price) return markInvalid($('#i-price'));
+  state.items.push({ type, liters, price, note: $('#i-note').value.trim() });
+  renderForm(); closeSheet('item'); toast('เพิ่มรายการแล้ว');
+});
+
+$('#f-photo').addEventListener('change', e => {
+  const f = e.target.files[0];
+  state.photo = f ? f.name : null;
+  $('#photo-chip').classList.toggle('hidden', !f);
+  $('#photo-chip').classList.toggle('flex', !!f);
+  if (f) { $('#photo-name').textContent = f.name; toast('แนบรูปใบเสร็จแล้ว'); }
+});
+$('#photo-clear').addEventListener('click', e => {
+  e.stopPropagation();
+  state.photo = null; $('#f-photo').value = '';
+  $('#photo-chip').classList.add('hidden'); $('#photo-chip').classList.remove('flex');
+});
+
+$('#dup-confirm').addEventListener('click', () => {
+  const date = $('#d-date').value, receipt = $('#d-receipt').value.trim();
+  const src = state.records[state.dupFrom];
+  if (!date || date === src.date) return markInvalid($('#d-date')) || toast('เปลี่ยนวันที่เติมก่อน');
+  if (!receipt || receipt === src.receipt) return markInvalid($('#d-receipt')) || toast('กรอกเลขที่ใบเสร็จใหม่');
+  state.records.unshift({ ...src, date, receipt, isNew: true });
+  closeSheet('dup'); state.dupFrom = null; renderHome(); go('home');
+  toast('ทำซ้ำรายการแล้ว');
+});
+
+$('#dup-edit').addEventListener('click', () => {
+  const src = state.records[state.dupFrom];
+  state.items = src.items.map(i => ({ ...i }));
+  $('#f-vendor').value = src.vendor;
+  $('#f-date').value = $('#d-date').value || today();
+  $('#f-receipt').value = $('#d-receipt').value.trim();
+  $('#f-odo').value = $('#d-odo').value.trim();
+  $('#form-title').textContent = 'ทำซ้ำรายการ';
+  $('#receipt-label').innerHTML = 'เลขที่ใบเสร็จ <span class="text-fuel-600">*</span>';
+  $('#dup-banner-text').textContent = 'คัดลอกจากรายการ ' + thDate(src.date) + ' — เปลี่ยนวันที่เติมและเลขที่ใบเสร็จก่อนบันทึก';
+  $('#dup-banner').classList.remove('hidden'); $('#dup-banner').classList.add('flex');
+  closeSheet('dup'); renderForm(); go('form');
+});
+
+$('#save-refuel').addEventListener('click', () => {
+  if (!state.items.length) return toast('เพิ่มรายการน้ำมันก่อนบันทึก');
+  if (!$('#f-date').value) return markInvalid($('#f-date'));
+  if (!$('#f-vendor').value.trim()) return markInvalid($('#f-vendor'));
+  const dup = state.dupFrom !== null;
+  if (dup && !$('#f-receipt').value.trim()) { toast('กรอกเลขที่ใบเสร็จใหม่'); return markInvalid($('#f-receipt')); }
+  const { liters, amt } = formTotals();
+  state.records.unshift({
+    date: $('#f-date').value, vendor: $('#f-vendor').value.trim(),
+    fuel: state.items.length > 1 ? state.items.map(i => i.type).join(' + ') : state.items[0].type,
+    liters, amt, receipt: $('#f-receipt').value.trim(), items: state.items.map(i => ({ ...i })), isNew: dup
+  });
+  state.items = []; state.dupFrom = null; state.photo = null;
+  $('#f-receipt').value = ''; $('#f-note').value = ''; $('#f-odo').value = ''; $('#f-photo').value = '';
+  $('#photo-chip').classList.add('hidden'); $('#photo-chip').classList.remove('flex');
+  $('#form-title').textContent = 'เติมน้ำมัน';
+  $('#receipt-label').textContent = 'เลขที่ใบเสร็จ';
+  $('#dup-banner').classList.add('hidden'); $('#dup-banner').classList.remove('flex');
+  renderForm(); renderHome(); go('home'); toast('บันทึกการเติมน้ำมันแล้ว');
+});
+
+/* ── report ── */
+const RANGES = ['เดือนนี้','3 เดือน','ปีนี้','ทั้งหมด'];
+function inRange(r, range) {
+  const now = new Date(today()), d = new Date(r.date);
+  if (range === 'เดือนนี้') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  if (range === '3 เดือน') { const c = new Date(now); c.setMonth(c.getMonth() - 2); c.setDate(1); return d >= c; }
+  if (range === 'ปีนี้') return d.getFullYear() === now.getFullYear();
+  return true;
+}
+function renderReport() {
+  $('#rp-ranges').innerHTML = RANGES.map(t => {
+    const on = t === state.range;
+    return `<button data-range="${t}" class="pr flex-1 flex items-center justify-center rounded-xl py-2.5 text-[13px] min-h-[42px] ${on ? 'bg-fuel-600 text-white font-bold' : 'bg-ink-field border border-ink-border font-semibold'}">${t}</button>`;
+  }).join('');
+
+  const list = state.records.filter(r => inRange(r, state.range));
+  const amt = list.reduce((s,r) => s + r.amt, 0), liters = list.reduce((s,r) => s + r.liters, 0);
+  $('#rp-range-label').textContent = state.range;
+  $('#rp-total').textContent = fmt(amt);
+  $('#rp-count').textContent = list.length + ' ครั้ง';
+  $('#rp-liters').textContent = fmt(liters) + ' ลิตร';
+  $('#rp-avg').textContent = list.length ? fmt(amt / list.length) : '0.00';
+  $('#rp-ppl').textContent = liters ? fmt(amt / liters) : '0.00';
+  const latest = [...state.records].sort((a,b) => b.date.localeCompare(a.date))[0];
+  $('#rp-last').textContent = latest ? thDate(latest.date).split(' ').slice(0,2).join(' ') : '—';
+
+  /* monthly bars: last 6 months */
+  const now = new Date(today());
+  const months = [];
+  for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(d); }
+  const sums = months.map(d => state.records.filter(r => { const x = new Date(r.date); return x.getMonth() === d.getMonth() && x.getFullYear() === d.getFullYear(); }).reduce((s,r) => s + r.amt, 0));
+  const max = Math.max(...sums, 1);
+  $('#rp-bars').innerHTML = months.map((d,i) => {
+    const h = Math.max(4, Math.round(sums[i] / max * 92));
+    const on = i === months.length - 1;
+    return `<div class="flex-1 flex flex-col items-center justify-end gap-1.5 h-full">
+      <span class="text-[11px] font-bold tabular-nums ${sums[i] ? 'text-ink' : 'text-ink-soft'}">${sums[i] ? Math.round(sums[i]).toLocaleString('en-US') : '–'}</span>
+      <div class="w-full rounded-t-lg ${on ? 'bg-gradient-to-b from-fuel-orange to-fuel-600' : 'bg-fuel-100'}" style="height:${h}px"></div>
+      <span class="text-[11px] ${on ? 'font-bold' : 'text-ink-soft font-semibold'}">${TH_M[d.getMonth()]}</span>
+    </div>`;
+  }).join('');
+
+  /* by fuel type */
+  const byType = {};
+  list.forEach(r => r.items.forEach(it => {
+    const key = /ดีเซล/.test(it.type) ? 'ดีเซล' : (/เบนซิน|แก๊สโซฮอล์/.test(it.type) ? it.type.replace('น้ำมัน','').trim() : it.type);
+    byType[key] = (byType[key] || 0) + it.liters * it.price;
+  }));
+  const typeRows = Object.entries(byType).sort((a,b) => b[1] - a[1]);
+  const typeMax = Math.max(...typeRows.map(r => r[1]), 1);
+  $('#rp-types').innerHTML = typeRows.length ? typeRows.map(([k,v]) => `<div class="flex flex-col gap-1.5">
+      <div class="flex items-center gap-3">
+        <span class="flex-1 min-w-0 text-[13.5px] font-semibold truncate">${k}</span>
+        <span class="text-[13.5px] font-bold tabular-nums">${fmt(v)}</span>
+        <span class="w-[42px] text-right text-[12px] text-ink-soft tabular-nums">${Math.round(v / amt * 100)}%</span>
+      </div>
+      <div class="h-2 rounded-full bg-ink-line overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-fuel-orange to-fuel-600" style="width:${Math.round(v / typeMax * 100)}%"></div></div>
+    </div>`).join('') : '<p class="text-[13px] text-ink-soft">ไม่มีข้อมูลในช่วงนี้</p>';
+
+  /* by vendor */
+  const byVendor = {};
+  list.forEach(r => { byVendor[r.vendor] = byVendor[r.vendor] || { amt:0, n:0 }; byVendor[r.vendor].amt += r.amt; byVendor[r.vendor].n++; });
+  const vRows = Object.entries(byVendor).sort((a,b) => b[1].amt - a[1].amt);
+  $('#rp-vendors').innerHTML = vRows.length ? vRows.map(([k,v],i) => `<div class="flex items-center gap-3 py-3 ${i === vRows.length-1 ? '' : 'border-b border-ink-line'}">
+      <span class="grid place-items-center w-9 h-9 rounded-xl bg-fuel-100 text-fuel-600 shrink-0">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 21V5a2 2 0 012-2h5a2 2 0 012 2v16"/><path d="M15 9h2.5a2 2 0 012 2v8"/><path d="M4 21h16"/></svg>
+      </span>
+      <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+        <span class="text-[13.5px] font-semibold truncate">${k}</span>
+        <span class="text-[12px] text-ink-soft">${v.n} ครั้ง</span>
+      </span>
+      <span class="text-[14.5px] font-bold tabular-nums">${fmt(v.amt)}</span>
+    </div>`).join('') : '<p class="py-3 text-[13px] text-ink-soft">ไม่มีข้อมูลในช่วงนี้</p>';
+}
+
+/* ── detail ── */
+const infoRow = (k, v, last) => `<div class="flex items-center gap-3 py-2.5 ${last ? '' : 'border-b border-ink-line'}">
+    <span class="shrink-0 w-[124px] text-[13px] text-ink-soft">${k}</span>
+    <span class="flex-1 min-w-0 text-[14px] font-semibold text-right">${v}</span>
+  </div>`;
+function openDetail(i) {
+  state.viewFrom = i;
+  const r = state.records[i];
+  $('#dt-date').textContent = thDate(r.date);
+  $('#dt-amt').textContent = fmt(r.amt);
+  $('#dt-status').textContent = r.isNew ? 'ทำซ้ำแล้ว' : 'บันทึกแล้ว';
+  $('#dt-info').innerHTML =
+    infoRow('รถที่เติมน้ำมัน', state.vehicle.plate + ' — ' + state.vehicle.brand) +
+    infoRow('วันที่เติม', thDate(r.date)) +
+    infoRow('ผู้ขาย / ปั๊มน้ำมัน', r.vendor) +
+    infoRow('เลขไมล์ (กม.)', r.odo ? Number(r.odo).toLocaleString('en-US') : '—') +
+    infoRow('ปริมาณรวม', fmt(r.liters) + ' ลิตร') +
+    infoRow('ราคาเฉลี่ย/ลิตร', fmt(r.amt / r.liters) + ' บาท', true);
+  $('#dt-items-count').textContent = r.items.length + ' รายการ';
+  $('#dt-items').innerHTML = r.items.map(it => {
+    const diesel = /ดีเซล/.test(it.type);
+    const tag = diesel ? 'B5' : (it.type.match(/\d{2}/) || ['95'])[0];
+    return `<div class="flex items-center gap-2.5 bg-ink-field rounded-xl px-3 py-2.5">
+      <span class="grid place-items-center w-[30px] h-[30px] rounded-lg bg-white ${diesel ? 'text-[#146b4c]' : 'text-fuel-600'} text-[12px] font-bold shrink-0">${tag}</span>
+      <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+        <span class="text-[14px] font-bold truncate">${it.type}</span>
+        <span class="text-[12.5px] text-ink-soft tabular-nums">${fmt(it.liters)} ลิตร × ${fmt(it.price)} บาท${it.note ? ' · ' + it.note : ''}</span>
+      </span>
+      <span class="text-[15px] font-bold tabular-nums">${fmt(it.liters * it.price)}</span>
+    </div>`;
+  }).join('');
+  $('#dt-sum').textContent = fmt(r.amt);
+  $('#dt-proof').innerHTML =
+    infoRow('เลขที่ใบเสร็จ', r.receipt || '—') +
+    infoRow('หมายเหตุ', r.note || '—', true);
+  go('detail');
+}
+
+/* ── init ── */
+$('#dt-dup').addEventListener('click', () => { const i = state.viewFrom; go('home'); openDup(i); });
+$('#dt-edit').addEventListener('click', () => toast('แก้ไขรายการที่บันทึกแล้ว'));
+$('#dt-delete').addEventListener('click', () => {
+  state.records.splice(state.viewFrom, 1);
+  state.viewFrom = null; renderHome(); go('home'); toast('ลบรายการแล้ว');
+});
+
+$('#f-date').value = today();
+renderChips(); resetItemSheet(); renderHome(); renderForm();
+</script>
+</body>
+</html>
