@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ค่าน้ำมันของฉัน — Fuel Module</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['"Noto Sans Thai"', 'system-ui', 'sans-serif'] },
+      colors: {
+        ink: '#16181D', muted: '#6B7280', faint: '#9AA0A8',
+        line: '#EAECEF', hair: '#F0F1F4', field: '#F5F6F8', bezel: '#E4E6EA',
+        accent: '#EE6C0A', 'accent-d': '#C4560A', 'accent-t': '#FFF1E3', 'accent-s': '#F6D0AC',
+        good: '#1B6B4A', 'good-t': '#EAF3EE', info: '#2F5573', 'info-t': '#ECF1F7', danger: '#C4332B'
+      },
+      keyframes: { sheetUp: { '0%': { transform: 'translateY(16px)', opacity: '.6' }, '100%': { transform: 'translateY(0)', opacity: '1' } } },
+      animation: { sheetUp: 'sheetUp .22s ease' }
+    }
+  }
+};
+</script>
+<style>
+  body { -webkit-tap-highlight-color: transparent; }
+  a { color: #EE6C0A; text-decoration: none; }
+  a:hover { color: #C4560A; }
+  .num { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body class="m-0 bg-[#EDEEF2] font-sans text-ink">
+<div id="app" class="flex justify-center min-h-screen"></div>
+
+<script>
+const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const FUEL_TYPES = ['เบนซิน 95','แก๊สโซฮอล์ 91','ดีเซล B5','อื่น ๆ'];
+const LITER_CHIPS = ['10','20','40','เต็มถัง'];
+const RANGES = ['เดือนนี้','3 เดือน','ปีนี้','ทั้งหมด'];
+const fmt = n => (n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const today = () => new Date().toISOString().slice(0, 10);
+const thDate = iso => { const d = new Date(iso + 'T00:00:00'); return d.getDate() + ' ' + TH_M[d.getMonth()] + ' ' + (d.getFullYear() + 543); };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+const ICON = {
+  back: '<path d="M15 18l-6-6 6-6"/>', chevR: '<path d="M9 18l6-6-6-6"/>', chevD: '<path d="M6 9l6 6 6-6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>', close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  dup: '<path d="M4 12a8 8 0 0113.7-5.7L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 01-13.7 5.7L4 16M4 20v-4h4"/>',
+  car: '<path d="M5 17h14M6 17l1.4-6.2A2 2 0 019.3 9h5.4a2 2 0 011.9 1.8L18 17M7.5 20h1.2M15.3 20h1.2"/>',
+  upload: '<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3"/>',
+  chart: '<path d="M5 20V11M12 20V5M19 20v-6"/>', search: '<circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/>',
+  camera: '<path d="M4 8V6a2 2 0 012-2h2.5l1-2h5l1 2H19a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/><circle cx="12.5" cy="12.5" r="3.5"/>',
+  trash: '<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>', check: '<path d="M5 13l4 4L19 7"/>',
+  filter: '<path d="M4 6h16M7 12h10M10 18h4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3.5 2"/>',
+  up: '<path d="M5 15l7-7 7 7"/>', warn: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/>'
+};
+const svg = (name, cls, w = 18, sw = 2.2) =>
+  '<svg width="' + w + '" height="' + w + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + sw + '" class="' + cls + '">' + ICON[name] + '</svg>';
+
+const S = {
+  page: 'home', range: 'เดือนนี้', view: null, dupFrom: null,
+  itemSheet: false, dupSheet: false, vehicleSheet: false,
+  toast: '', itemError: '', dupError: '', hQuery: '', vQuery: '', photo: null, items: [],
+  filterSheet: false,
+  filter: { from: '', to: '', type: 'ทั้งหมด' }, fDraft: { from: '', to: '', type: 'ทั้งหมด' },
+  form: { date: today(), vendor: '00748กาญจนดิษฐ์', odo: '', receipt: '', note: '', dupNotice: '' },
+  item: { type: FUEL_TYPES[0], liters: '', price: '', note: '' },
+  dup: { date: today(), receipt: '', odo: '' },
+  vehicle: { plate: '1 กฐ 5929', brand: 'HONDA', model: 'City 1.0 Turbo', dept: 'ฝ่ายขนส่ง' },
+  fleet: [
+    { plate: '1 กฐ 5929', brand: 'HONDA', model: 'City 1.0 Turbo', dept: 'ฝ่ายขนส่ง' },
+    { plate: '2 ขต 1144', brand: 'TOYOTA', model: 'Hilux Revo', dept: 'ฝ่ายขนส่ง' },
+    { plate: '3 กม 8820', brand: 'ISUZU', model: 'D-Max Spacecab', dept: 'ฝ่ายช่าง' },
+    { plate: 'ฮก 447', brand: 'MITSUBISHI', model: 'Triton', dept: 'ฝ่ายช่าง' },
+    { plate: '4 นค 2031', brand: 'NISSAN', model: 'Almera', dept: 'สำนักงานใหญ่' },
+    { plate: '5 ขก 6612', brand: 'FORD', model: 'Ranger XLT', dept: 'สาขาสุราษฎร์' }
+  ],
+  records: [
+    { date: '2026-09-16', vendor: '00748กาญจนดิษฐ์', fuel: 'เบนซิน 95 + ดีเซล B5', liters: 2, amt: 62.41, receipt: 'RC-26091601',
+      items: [{ type: 'เบนซิน 95', liters: 1, price: 35.11 }, { type: 'ดีเซล B5', liters: 1, price: 27.30 }] },
+    { date: '2026-09-02', vendor: 'ปั๊ม ปตท. บ้านดอน', fuel: 'ดีเซล B5', liters: 32.5, amt: 887.25, receipt: 'RC-26090204',
+      items: [{ type: 'ดีเซล B5', liters: 32.5, price: 27.30 }] },
+    { date: '2026-08-24', vendor: '00748กาญจนดิษฐ์', fuel: 'เบนซิน 95', liters: 8.2, amt: 290.28, receipt: 'RC-26082411',
+      items: [{ type: 'เบนซิน 95', liters: 8.2, price: 35.40 }] }
+  ]
+};
+
+let toastTimer;
+function toast(msg) { S.toast = msg; render(); clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.toast = ''; render(); }, 1900); }
+function go(page) { S.page = page; render(); window.scrollTo(0, 0); }
+const totals = items => ({ liters: items.reduce((a, i) => a + i.liters, 0), amt: items.reduce((a, i) => a + i.liters * i.price, 0) });
+const tagOf = t => ({ tag: /ดีเซล/.test(t) ? 'B5' : ((t.match(/\d{2}/) || ['95'])[0]), diesel: /ดีเซล/.test(t) });
+const needReceipt = () => !!S.form.dupNotice;
+
+/* ---------- shared chunks ---------- */
+const CARD = 'bg-white border border-line rounded-2xl';
+const HEAD_BTN = 'w-9 h-9 rounded-[10px] border border-bezel bg-white grid place-items-center text-ink';
+const SHEET_WRAP = 'fixed inset-0 z-[60] flex justify-center items-end bg-ink/40';
+const SHEET = 'relative w-full max-w-[420px] bg-white rounded-t-[20px] px-4 pt-2 pb-5 flex flex-col gap-3.5 animate-sheetUp max-h-[92vh] overflow-y-auto';
+const INPUT_R = 'flex-1 min-w-0 border-0 outline-none bg-transparent text-[15px] text-right text-ink';
+const BOX_INPUT = 'w-full border border-bezel rounded-xl bg-white p-3 text-[15px] outline-none text-ink focus:border-accent';
+
+const header = (title, sub, right, backAct) => `
+  <div class="sticky top-0 z-20 bg-white border-b border-line px-4 py-3.5 flex items-center gap-3">
+    <button data-act="${backAct || (sub ? 'toast:กลับไปหน้า VAM Workspace' : 'home')}" aria-label="ย้อนกลับ" class="${HEAD_BTN}">${svg('back')}</button>
+    ${sub
+      ? `<div class="flex-1 min-w-0 flex flex-col gap-0.5 items-start">
+           <span class="text-base font-bold">${esc(title)}</span>
+           <span class="text-xs text-muted font-semibold">${esc(sub)}</span>
+         </div>`
+      : `<span class="flex-1 text-base font-bold">${esc(title)}</span>`}
+    ${right || ''}
+  </div>`;
+
+const itemRow = (it, delIdx) => {
+  const t = tagOf(it.type);
+  return `<div class="flex items-center gap-2.5 bg-field rounded-xl px-3 py-2.5">
+    <span class="grid place-items-center w-[30px] h-[30px] rounded-[9px] bg-white text-xs font-bold shrink-0 ${t.diesel ? 'text-good' : 'text-ink'}">${t.tag}</span>
+    <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+      <span class="text-sm font-bold truncate">${esc(it.type)}</span>
+      <span class="text-[12.5px] text-muted num">${fmt(it.liters)} ลิตร × ${fmt(it.price)} บาท${it.note ? ' · ' + esc(it.note) : ''}</span>
+    </span>
+    <span class="text-[15px] font-bold num">${fmt(it.liters * it.price)}</span>
+    ${delIdx != null ? `<button data-act="delItem:${delIdx}" aria-label="ลบรายการ" class="w-7 h-7 rounded-lg border-0 bg-bezel text-muted grid place-items-center shrink-0">${svg('close', '', 13, 2.6)}</button>` : ''}
+  </div>`;
+};
+
+/* ---------- screens ---------- */
+function home() {
+  const now = new Date(today());
+  const inMonth = (r, d) => { const x = new Date(r.date); return x.getMonth() === d.getMonth() && x.getFullYear() === d.getFullYear(); };
+  const monthly = S.records.filter(r => inMonth(r, now));
+  const prevM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevTotal = S.records.filter(r => inMonth(r, prevM)).reduce((a, x) => a + x.amt, 0);
+  const cur = monthly.reduce((a, x) => a + x.amt, 0);
+  const up = cur >= prevTotal;
+  const trend = prevTotal
+    ? (up ? '+' : '−') + Math.round(Math.abs(cur - prevTotal) / prevTotal * 100) + '% จาก ' + TH_M[prevM.getMonth()]
+    : 'เดือนก่อนไม่มีรายการ';
+
+  const rows = S.records.map((r, i) => [r, i]).slice(0, 3);
+
+  const quick = [
+    { act: 'dupLatest', label: 'ทำซ้ำล่าสุด', icon: 'dup', tint: 'bg-accent-t text-accent-d' },
+    { act: 'history', label: 'ประวัติ', icon: 'clock', tint: 'bg-info-t text-info' },
+    { act: 'report', label: 'รายงาน', icon: 'chart', tint: 'bg-good-t text-good' }
+  ];
+
+  return `
+  <div class="flex flex-col flex-1">
+    ${header('ค่าน้ำมันของฉัน', null, '', 'toast:กลับไปหน้า VAM Workspace')}
+
+    <div class="px-3 pt-3.5 pb-24 flex flex-col gap-3">
+      <div class="bg-[#FFF6EE] border border-[#F6DFC9] rounded-[18px] p-[18px] pb-4 flex items-center gap-3">
+        <div class="flex-1 min-w-0 flex flex-col gap-2.5">
+          <span class="text-[12.5px] text-[#8A6D55] font-semibold">ค่าน้ำมันเดือนนี้</span>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-base font-semibold text-muted">฿</span>
+            <span class="text-[38px] font-bold leading-none tracking-[-.8px] num">${fmt(cur)}</span>
+          </div>
+          <div class="flex items-center gap-2.5 text-[12.5px] text-muted num">
+            <span>${monthly.length} ครั้ง</span><span class="text-[#D5D8DD]">|</span><span>${fmt(monthly.reduce((a, x) => a + x.liters, 0))} ลิตร</span>
+          </div>
+          <button data-act="report" class="flex items-center gap-1.5 self-start mt-0.5 border-0 rounded-full py-1.5 pl-2.5 pr-3 text-xs font-bold ${up ? 'bg-accent-t text-accent-d' : 'bg-good-t text-good'}">
+            ${svg('up', up ? '' : 'rotate-180', 13, 2.6)}<span>${trend}</span>
+          </button>
+        </div>
+        <img src="fuel-3d.png" alt="" class="w-[86px] h-[86px] object-contain shrink-0" />
+      </div>
+
+      <div class="${CARD} p-3 grid grid-cols-3">
+        ${quick.map(q => `
+          <button data-act="${q.act}" class="flex flex-col items-center gap-2 border-0 bg-transparent px-1 py-2.5 rounded-xl text-ink hover:bg-field">
+            <span class="w-11 h-11 rounded-2xl grid place-items-center ${q.tint}">${svg(q.icon, '', 20, 2.2)}</span>
+            <span class="text-[12.5px] font-semibold">${q.label}</span>
+          </button>`).join('')}
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-1.5">
+        <div class="flex items-center justify-between gap-3 pb-1">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span>
+            <span class="text-sm font-bold">ประวัติการเติมน้ำมัน</span>
+          </div>
+        </div>
+        ${rows.length === 0 ? `<p class="my-3.5 text-[13px] text-muted">ยังไม่มีประวัติการเติมน้ำมัน</p>` : ''}
+        ${rows.map(([r, i], pos) => {
+          const p = thDate(r.date).split(' ');
+          const qty = r.items.length > 1
+            ? fmt(r.liters) + ' ลิตร · ' + r.items.length + ' รายการ'
+            : fmt(r.items[0].liters) + ' ลิตร × ' + fmt(r.items[0].price) + ' บาท';
+          return `<div class="flex items-center gap-3 py-3.5 ${pos === 0 ? '' : 'border-t border-hair'}">
+            <div class="w-11 h-11 rounded-xl bg-field flex flex-col items-center justify-center shrink-0">
+              <span class="text-[15px] font-bold leading-none">${p[0]}</span><span class="text-[10.5px] font-semibold text-muted">${p[1]}</span>
+            </div>
+            <button data-act="detail:${i}" class="flex-1 min-w-0 flex flex-col gap-0.5 text-left border-0 bg-transparent p-0 text-ink">
+              <span class="text-sm font-bold truncate max-w-full">${esc(r.fuel)}</span>
+              <span class="text-[12.5px] text-muted num">${qty}</span>
+              <span class="text-[12.5px] text-faint truncate max-w-full">${esc(S.vehicle.plate)}</span>
+            </button>
+            <div class="flex flex-col items-end gap-2 shrink-0">
+              <span class="text-[15.5px] font-bold num">${fmt(r.amt)}</span>
+              <button data-act="dup:${i}" title="ทำซ้ำรายการนี้" class="min-h-[30px] px-2.5 rounded-[9px] border border-[#F3C7A4] bg-white flex items-center gap-1.5 text-accent text-xs font-semibold">${svg('dup', '', 13, 2.2)}ทำซ้ำ</button>
+            </div>
+          </div>`;
+        }).join('')}
+        <button data-act="history" class="w-full min-h-[44px] border-0 bg-transparent flex items-center justify-center gap-1.5 text-[13px] font-semibold text-muted">ดูทั้งหมด${svg('chevR', '', 14, 2.2)}</button>
+      </div>
+    </div>
+
+    <div class="sticky bottom-0 bg-white/95 backdrop-blur border-t border-line px-4 pt-3 pb-4">
+      <button data-act="form" class="w-full min-h-[52px] border-0 rounded-[14px] bg-accent text-white text-[15.5px] font-bold flex items-center justify-center gap-2">${svg('plus', '', 18, 2.6)}เติมน้ำมัน</button>
+    </div>
+  </div>`;
+}
+
+function monthKeys() {
+  const seen = [];
+  S.records.forEach(r => { const k = r.date.slice(0, 7); if (!seen.includes(k)) seen.push(k); });
+  return seen.sort().reverse();
+}
+const monthLabel = k => TH_M[+k.slice(5, 7) - 1] + ' ' + String(+k.slice(0, 4) + 543).slice(2);
+
+const inFilter = (r, f) =>
+  (!f.from || r.date >= f.from) && (!f.to || r.date <= f.to) &&
+  (f.type === 'ทั้งหมด' || r.items.some(i => i.type === f.type));
+const filterSummary = f => {
+  const parts = [];
+  if (f.from && f.to) parts.push(thDate(f.from) + ' – ' + thDate(f.to));
+  else if (f.from) parts.push('ตั้งแต่ ' + thDate(f.from));
+  else if (f.to) parts.push('ถึง ' + thDate(f.to));
+  if (f.type !== 'ทั้งหมด') parts.push(f.type);
+  return parts.join(' · ');
+};
+
+function history() {
+  const f = S.filter;
+  const rows = S.records.map((r, i) => [r, i]).filter(([r]) => inFilter(r, f));
+  const sumAmt = rows.reduce((a, [r]) => a + r.amt, 0);
+  const sumL = rows.reduce((a, [r]) => a + r.liters, 0);
+  const summary = filterSummary(f);
+  const active = !!summary;
+
+  return `
+  <div class="flex flex-col flex-1">
+    ${header('ประวัติการเติมน้ำมัน')}
+
+    <div class="px-3 pt-3.5 pb-6 flex flex-col gap-3">
+      <div class="flex items-center gap-2">
+        <button data-act="openFilter" class="flex-1 min-h-[46px] flex items-center gap-2.5 px-3.5 rounded-[14px] border ${active ? 'border-accent bg-accent-t' : 'border-bezel bg-white'} text-left">
+          <span class="w-7 h-7 rounded-[9px] grid place-items-center shrink-0 ${active ? 'bg-accent text-white' : 'bg-field text-muted'}">${svg('filter', '', 15, 2.2)}</span>
+          <span class="flex-1 min-w-0 text-[13.5px] font-semibold truncate ${active ? 'text-accent-d' : 'text-ink'}">${active ? esc(summary) : 'กรองวันที่ หรือชนิดน้ำมัน'}</span>
+          <span class="${active ? 'text-accent' : 'text-[#B9BEC5]'} shrink-0">${svg('chevD', '', 16, 2.4)}</span>
+        </button>
+        ${active ? `<button data-act="hClear" aria-label="ล้างตัวกรอง" class="w-[46px] h-[46px] rounded-[14px] border border-bezel bg-white text-muted grid place-items-center shrink-0">${svg('close', '', 15, 2.6)}</button>` : ''}
+      </div>
+
+      <div class="flex items-center gap-3 bg-[#FFF6EE] border border-[#F6DFC9] rounded-2xl px-4 py-3">
+        <span class="flex-1 min-w-0 text-[12.5px] text-[#8A6D55] font-semibold num">${rows.length} รายการ · ${fmt(sumL)} ลิตร</span>
+        <span class="text-[17px] font-bold num">฿${fmt(sumAmt)}</span>
+      </div>
+
+      <div class="${CARD} px-4 pt-1.5 pb-1.5">
+        ${rows.length === 0 ? `<p class="my-3.5 text-[13px] text-muted">ไม่มีรายการตามตัวกรองที่เลือก</p>` : ''}
+        ${rows.map(([r, i], pos) => {
+          const p = thDate(r.date).split(' ');
+          const qty = r.items.length > 1
+            ? fmt(r.liters) + ' ลิตร · ' + r.items.length + ' รายการ'
+            : fmt(r.items[0].liters) + ' ลิตร × ' + fmt(r.items[0].price) + ' บาท';
+          return `<div class="flex items-center gap-3 py-3.5 ${pos === 0 ? '' : 'border-t border-hair'}">
+            <div class="w-11 h-11 rounded-xl bg-field flex flex-col items-center justify-center shrink-0">
+              <span class="text-[15px] font-bold leading-none">${p[0]}</span><span class="text-[10.5px] font-semibold text-muted">${p[1]}</span>
+            </div>
+            <button data-act="detail:${i}" class="flex-1 min-w-0 flex flex-col gap-0.5 text-left border-0 bg-transparent p-0 text-ink">
+              <span class="text-sm font-bold truncate max-w-full">${esc(r.fuel)}</span>
+              <span class="text-[12.5px] text-muted num">${qty}</span>
+              <span class="text-[12.5px] text-faint truncate max-w-full">${esc(S.vehicle.plate)}</span>
+            </button>
+            <div class="flex flex-col items-end gap-2 shrink-0">
+              <span class="text-[15.5px] font-bold num">${fmt(r.amt)}</span>
+              <button data-act="dup:${i}" title="ทำซ้ำรายการนี้" class="min-h-[30px] px-2.5 rounded-[9px] border border-[#F3C7A4] bg-white flex items-center gap-1.5 text-accent text-xs font-semibold">${svg('dup', '', 13, 2.2)}ทำซ้ำ</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function form() {
+  const t = totals(S.items);
+  const can = S.items.length > 0;
+  const req = needReceipt();
+  return `
+  <div class="flex flex-col flex-1">
+    ${header(S.form.dupNotice ? 'ทำซ้ำรายการ' : 'เติมน้ำมัน')}
+    <div class="px-3 pt-3.5 pb-6 flex flex-col gap-3">
+      ${S.form.dupNotice ? `<div class="flex gap-2 items-start bg-accent-t border border-accent-s rounded-xl p-3">
+        <span class="shrink-0 mt-0.5 text-accent-d">${svg('warn', '', 16, 2.2)}</span>
+        <span class="text-[12.5px] leading-relaxed text-[#8A4A08]">${esc(S.form.dupNotice)}</span></div>` : ''}
+
+      <div class="${CARD} overflow-hidden">
+        <button data-act="vehicle" class="w-full flex items-center gap-3 px-4 py-3.5 text-left border-0 bg-white text-ink">
+          <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+            <span class="text-xs text-muted font-semibold">รถที่เติมน้ำมัน</span>
+            <span class="text-[15.5px] font-bold">${esc(S.vehicle.plate + ' · ' + S.vehicle.brand)}</span>
+          </span>
+          <span class="text-[#B9BEC5]">${svg('chevR', '', 17, 2.2)}</span>
+        </button>
+        <div class="h-px bg-hair ml-4"></div>
+        <label class="flex items-center gap-3 px-4 py-3">
+          <span class="shrink-0 w-[118px] text-[13.5px] font-semibold">วันที่เติม</span>
+          <input type="date" id="fDate" value="${esc(S.form.date)}" class="${INPUT_R} font-semibold" />
+        </label>
+        <div class="h-px bg-hair ml-4"></div>
+        <label class="flex items-center gap-3 px-4 py-3">
+          <span class="shrink-0 w-[118px] text-[13.5px] font-semibold">ปั๊มน้ำมัน</span>
+          <input id="fVendor" value="${esc(S.form.vendor)}" placeholder="ชื่อผู้ขาย" class="${INPUT_R} font-semibold" />
+        </label>
+        <div class="h-px bg-hair ml-4"></div>
+        <label class="flex items-center gap-3 px-4 py-3">
+          <span class="shrink-0 w-[118px] text-[13.5px] text-muted">เลขไมล์ (กม.)</span>
+          <input id="fOdo" inputmode="numeric" value="${esc(S.form.odo)}" placeholder="ไม่บังคับ" class="${INPUT_R}" />
+        </label>
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-3">
+          <span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">รายการน้ำมัน</span></span>
+          <span class="text-[12.5px] text-muted">${S.items.length} รายการ</span>
+        </div>
+        ${S.items.map((it, i) => itemRow(it, i)).join('')}
+        ${S.items.length === 0 ? `<p class="m-0 text-[13px] leading-relaxed text-muted">ยังไม่มีรายการ เพิ่มชนิดน้ำมัน ปริมาณ และราคาต่อลิตร</p>` : ''}
+        <button data-act="openItem" class="w-full min-h-12 border border-dashed border-[#D7DAE0] rounded-xl bg-white text-ink text-[14.5px] font-bold flex items-center justify-center gap-2">
+          <span class="text-accent">${svg('plus', '', 17, 2.6)}</span>เพิ่มรายการน้ำมัน</button>
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-4 flex flex-col gap-3">
+        <span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">หลักฐาน <span class="font-medium text-faint">${req ? '· ต้องมีเลขที่ใบเสร็จ' : '· ไม่บังคับ'}</span></span></span>
+        <label class="flex items-center gap-3">
+          <span class="shrink-0 w-[118px] text-[13.5px] text-muted">เลขที่ใบเสร็จ</span>
+          <input id="fReceipt" value="${esc(S.form.receipt)}" placeholder="${req ? 'เช่น RC-26091702' : 'ไม่บังคับ'}" class="${INPUT_R}" />
+        </label>
+        <div class="h-px bg-hair"></div>
+        <label class="flex items-center gap-3">
+          <span class="shrink-0 w-[118px] text-[13.5px] text-muted">หมายเหตุ</span>
+          <input id="fNote" value="${esc(S.form.note)}" placeholder="ไม่บังคับ" class="${INPUT_R}" />
+        </label>
+        <div class="h-px bg-hair"></div>
+        <div class="flex items-center gap-3">
+          <span class="flex-1 text-[13.5px] text-muted">รูปใบเสร็จ</span>
+          ${S.photo
+            ? `<span class="flex items-center gap-2 bg-field rounded-[10px] pl-2.5 pr-2 py-1.5 max-w-[190px]">
+                 <span class="text-[12.5px] font-semibold truncate">${esc(S.photo)}</span>
+                 <button data-act="clearPhoto" aria-label="ลบรูป" class="w-[22px] h-[22px] rounded-[7px] border-0 bg-white text-muted grid place-items-center shrink-0">${svg('close', '', 11, 3)}</button></span>`
+            : `<button data-act="addPhoto" class="h-10 px-3.5 rounded-[10px] border border-bezel bg-white text-[13.5px] font-semibold text-ink flex items-center gap-2">
+                 <span class="text-muted">${svg('camera', '', 17, 1.9)}</span>แนบรูป</button>`}
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky bottom-0 bg-white/95 backdrop-blur border-t border-line px-4 pt-3 pb-4 flex items-center gap-3">
+      <div class="flex flex-col gap-0.5 min-w-0">
+        <span class="text-[11.5px] text-muted">ยอดรวม</span>
+        <span class="text-[21px] font-bold num leading-tight">${fmt(t.amt)} บาท</span>
+      </div>
+      <button data-act="save" class="flex-1 min-h-[52px] border-0 rounded-[14px] text-[15.5px] font-bold ${can ? 'bg-accent text-white' : 'bg-bezel text-faint'}">บันทึก</button>
+    </div>
+  </div>`;
+}
+
+function report() {
+  const now = new Date(today());
+  const inRange = r => {
+    const d = new Date(r.date);
+    if (S.range === 'เดือนนี้') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    if (S.range === '3 เดือน') { const c = new Date(now); c.setMonth(c.getMonth() - 2); c.setDate(1); return d >= c; }
+    if (S.range === 'ปีนี้') return d.getFullYear() === now.getFullYear();
+    return true;
+  };
+  const list = S.records.filter(inRange);
+  const amt = list.reduce((a, r) => a + r.amt, 0), liters = list.reduce((a, r) => a + r.liters, 0);
+  const latest = [...S.records].sort((a, b) => b.date.localeCompare(a.date))[0];
+  const months = []; for (let i = 5; i >= 0; i--) months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+  const sums = months.map(d => S.records.filter(r => { const x = new Date(r.date); return x.getMonth() === d.getMonth() && x.getFullYear() === d.getFullYear(); }).reduce((a, r) => a + r.amt, 0));
+  const maxSum = Math.max(...sums, 1);
+
+  const byType = {};
+  list.forEach(r => r.items.forEach(it => { const k = /ดีเซล/.test(it.type) ? 'ดีเซล B5' : it.type; byType[k] = (byType[k] || 0) + it.liters * it.price; }));
+  const tRows = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+  const tMax = Math.max(...tRows.map(r => r[1]), 1);
+  const byVendor = {};
+  list.forEach(r => { byVendor[r.vendor] = byVendor[r.vendor] || { amt: 0, n: 0 }; byVendor[r.vendor].amt += r.amt; byVendor[r.vendor].n++; });
+
+  return `
+  <div class="flex flex-col flex-1">
+    ${header('รายงานค่าน้ำมัน', null, `<button data-act="toast:ส่งออกรายงานเป็นไฟล์" aria-label="ส่งออก" class="${HEAD_BTN}">${svg('upload', '', 17, 2)}</button>`)}
+    <div class="px-3 pt-3.5 pb-6 flex flex-col gap-3">
+      <div class="${CARD} overflow-hidden">
+        <button data-act="vehicle" class="w-full flex items-center gap-3 px-4 py-3.5 text-left border-0 bg-white text-ink">
+          <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+            <span class="text-xs text-muted font-semibold">รถที่ดูรายงาน</span>
+            <span class="text-[15.5px] font-bold">${esc(S.vehicle.plate + ' · ' + S.vehicle.brand)}</span>
+          </span>
+          <span class="text-[#B9BEC5]">${svg('chevR', '', 17, 2.2)}</span>
+        </button>
+      </div>
+      <div class="flex gap-1.5 bg-bezel rounded-xl p-1">
+        ${RANGES.map(r => {
+          const on = r === S.range;
+          return `<button data-act="range:${r}" class="flex-1 min-h-[38px] border-0 rounded-[9px] text-[13px] ${on ? 'bg-white font-bold text-accent-d shadow-sm' : 'bg-transparent font-semibold text-muted'}">${r}</button>`;
+        }).join('')}
+      </div>
+
+      <div class="${CARD} p-4">
+        <div class="flex flex-col gap-2">
+          <span class="text-[12.5px] text-muted font-semibold">ค่าน้ำมัน ${S.range}</span>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-[15px] font-semibold text-muted">฿</span>
+            <span class="text-[32px] font-bold leading-none tracking-[-.5px] num">${fmt(amt)}</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2.5 mt-4 pt-3.5 border-t border-hair">
+          <div class="flex flex-col gap-0.5"><span class="text-[11.5px] text-muted">เฉลี่ย/ครั้ง</span><span class="text-base font-bold num">${list.length ? fmt(amt / list.length) : '0.00'}</span></div>
+          <div class="flex flex-col gap-0.5"><span class="text-[11.5px] text-muted">ราคา/ลิตร</span><span class="text-base font-bold num">${liters ? fmt(amt / liters) : '0.00'}</span></div>
+          <div class="flex flex-col gap-0.5"><span class="text-[11.5px] text-muted">ครั้งล่าสุด</span><span class="text-base font-bold">${latest ? thDate(latest.date).split(' ').slice(0, 2).join(' ') : '—'}</span></div>
+        </div>
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-4 flex flex-col gap-3.5">
+        <span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">ค่าน้ำมันรายเดือน</span></span>
+        <div class="flex items-end gap-2.5 h-[132px]">
+          ${months.map((d, i) => {
+            const on = i === months.length - 1;
+            const h = Math.max(4, Math.round(sums[i] / maxSum * 90));
+            return `<div class="flex-1 flex flex-col items-center justify-end gap-1.5 h-full">
+              <span class="text-[11px] font-bold num ${sums[i] ? 'text-ink' : 'text-[#B9BEC5]'}">${sums[i] ? Math.round(sums[i]).toLocaleString('en-US') : '–'}</span>
+              <div class="w-full rounded-t-lg ${on ? 'bg-accent' : 'bg-accent-s'}" style="height:${h}px"></div>
+              <span class="text-[11px] ${on ? 'font-bold text-ink' : 'font-semibold text-muted'}">${TH_M[d.getMonth()]}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-4 flex flex-col gap-3">
+        <span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">แยกตามชนิดน้ำมัน</span></span>
+        ${tRows.length === 0 ? `<p class="m-0 text-[13px] text-muted">ไม่มีข้อมูลในช่วงนี้</p>` : ''}
+        ${tRows.map(([name, v], i) => `
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center gap-3">
+              <span class="flex-1 min-w-0 text-[13.5px] font-semibold truncate">${esc(name)}</span>
+              <span class="text-[13.5px] font-bold num">${fmt(v)}</span>
+              <span class="w-[42px] text-right text-xs text-muted num">${Math.round(v / (amt || 1) * 100)}%</span>
+            </div>
+            <div class="h-2 rounded-full bg-hair overflow-hidden">
+              <div class="h-full rounded-full ${i === 0 ? 'bg-accent' : 'bg-accent-s'}" style="width:${Math.round(v / tMax * 100)}%"></div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-1.5">
+        <span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">แยกตามปั๊มน้ำมัน</span></span>
+        ${Object.entries(byVendor).sort((a, b) => b[1].amt - a[1].amt).map(([name, v], i) => `
+          <div class="flex items-center gap-3 py-3 border-t border-hair ${i === 0 ? 'mt-2.5' : ''}">
+            <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+              <span class="text-[13.5px] font-semibold truncate">${esc(name)}</span>
+              <span class="text-xs text-muted">${v.n} ครั้ง</span>
+            </span>
+            <span class="text-[14.5px] font-bold num">${fmt(v.amt)}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function detail() {
+  const r = S.records[S.view];
+  if (!r) return home();
+  const info = [
+    ['รถที่เติมน้ำมัน', S.vehicle.plate + ' — ' + S.vehicle.brand],
+    ['วันที่เติม', thDate(r.date)],
+    ['ปั๊มน้ำมัน', r.vendor],
+    ['เลขไมล์ (กม.)', r.odo ? Number(r.odo).toLocaleString('en-US') : '—'],
+    ['ปริมาณรวม', fmt(r.liters) + ' ลิตร'],
+    ['ราคาเฉลี่ย/ลิตร', fmt(r.amt / r.liters) + ' บาท']
+  ];
+  const kv = rows => rows.map(([k, v], i) => `
+    <div class="flex items-center gap-3 py-2.5 border-t border-hair ${i === 0 ? 'mt-2.5' : ''}">
+      <span class="shrink-0 w-[124px] text-[13px] text-muted">${esc(k)}</span>
+      <span class="flex-1 min-w-0 text-sm font-semibold text-right">${esc(v)}</span>
+    </div>`).join('');
+
+  return `
+  <div class="flex flex-col flex-1">
+    ${header('รายละเอียดการเติม', null, `<button data-act="toast:แชร์รายการนี้" aria-label="แชร์" class="${HEAD_BTN}">${svg('upload', '', 17, 2)}</button>`)}
+    <div class="px-3 pt-3.5 pb-6 flex flex-col gap-3">
+      <div class="${CARD} p-4 flex items-start justify-between gap-3">
+        <div class="flex flex-col gap-2">
+          <span class="text-[12.5px] text-muted font-semibold">${thDate(r.date)}</span>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-[15px] font-semibold text-muted">฿</span>
+            <span class="text-[32px] font-bold leading-none tracking-[-.5px] num">${fmt(r.amt)}</span>
+          </div>
+        </div>
+        <span class="text-xs font-bold bg-hair rounded-full px-3 py-1.5">${r.isNew ? 'ทำซ้ำแล้ว' : 'บันทึกแล้ว'}</span>
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-1"><span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">ข้อมูลการเติม</span></span>${kv(info)}</div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-3">
+          <span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">รายการน้ำมัน</span></span><span class="text-[12.5px] text-muted">${r.items.length} รายการ</span>
+        </div>
+        ${r.items.map(it => itemRow(it, null)).join('')}
+        <div class="flex items-center gap-3 border-t border-hair pt-3">
+          <span class="flex-1 text-[13px] font-semibold text-muted">ยอดรวม</span>
+          <span class="text-[17px] font-bold num">${fmt(r.amt)} บาท</span>
+        </div>
+      </div>
+
+      <div class="${CARD} px-4 pt-3.5 pb-1"><span class="flex items-center gap-2"><span class="w-[3px] h-[15px] rounded-sm bg-accent shrink-0"></span><span class="text-sm font-bold">หลักฐาน</span></span>${kv([['เลขที่ใบเสร็จ', r.receipt || '—'], ['หมายเหตุ', r.note || '—']])}</div>
+    </div>
+
+    <div class="sticky bottom-0 bg-white/95 backdrop-blur border-t border-line px-4 pt-3 pb-4 flex items-center gap-2.5">
+      <button data-act="del" aria-label="ลบรายการ" class="w-12 h-12 rounded-xl border border-bezel bg-white text-muted grid place-items-center shrink-0">${svg('trash', '', 18, 2)}</button>
+      <button data-act="toast:แก้ไขรายการที่บันทึกแล้ว" class="h-12 px-4 rounded-xl border border-bezel bg-white text-[14.5px] font-bold text-ink">แก้ไข</button>
+      <button data-act="dup:${S.view}" class="flex-1 min-h-12 border-0 rounded-xl bg-accent text-white text-[15px] font-bold flex items-center justify-center gap-2">${svg('dup', '', 16, 2.2)}ทำซ้ำรายการ</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- sheets ---------- */
+function itemSheet() {
+  const isFree = !FUEL_TYPES.includes(S.item.type) || S.item.type === 'อื่น ๆ';
+  const L = parseFloat(S.item.liters) || 0, P = parseFloat(S.item.price) || 0;
+  return `
+  <div class="${SHEET_WRAP}">
+    <div data-act="closeItem" class="absolute inset-0"></div>
+    <div class="${SHEET}">
+      <div class="grid place-items-center py-1"><span class="w-9 h-1 rounded-full bg-bezel"></span></div>
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-[16.5px] font-bold">เพิ่มรายการน้ำมัน</span>
+        <button data-act="closeItem" aria-label="ปิด" class="w-8 h-8 rounded-[10px] border-0 bg-hair text-muted grid place-items-center">${svg('close', '', 14, 2.6)}</button>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <span class="text-[12.5px] text-muted font-semibold">ชนิดน้ำมัน</span>
+        <div class="flex gap-2 flex-wrap">
+          ${FUEL_TYPES.map(l => {
+            const on = l === 'อื่น ๆ' ? isFree : S.item.type === l;
+            return `<button data-act="iType:${l}" class="min-h-[38px] px-3.5 rounded-[10px] text-[13px] ${on ? 'border border-accent bg-accent text-white font-bold' : 'border border-bezel bg-white text-ink font-semibold'}">${l}</button>`;
+          }).join('')}
+        </div>
+        ${isFree ? `<input id="iType" value="${esc(S.item.type)}" placeholder="ระบุชนิดน้ำมัน" class="${BOX_INPUT} text-[14.5px]" />` : ''}
+      </div>
+
+      <div class="flex flex-col gap-2.5 bg-field rounded-2xl p-3.5">
+        <div class="flex items-end justify-between gap-3">
+          <span class="text-[13.5px] font-semibold text-muted">ปริมาณ</span>
+          <div class="flex items-baseline gap-1.5">
+            <input id="iLiters" inputmode="decimal" value="${esc(S.item.liters)}" placeholder="0.00" class="w-[130px] border-0 bg-transparent outline-none text-3xl font-bold text-right num text-ink" />
+            <span class="text-sm font-semibold text-muted">ลิตร</span>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          ${LITER_CHIPS.map(c => `<button data-act="chip:${c}" class="flex-1 min-h-[38px] border border-bezel rounded-[10px] bg-white text-[13px] font-semibold text-ink">${c}</button>`).join('')}
+        </div>
+      </div>
+
+      <label class="flex items-center justify-between gap-3">
+        <span class="text-[13.5px] font-semibold text-muted">ราคา/ลิตร (บาท)</span>
+        <input id="iPrice" inputmode="decimal" value="${esc(S.item.price)}" placeholder="0.00" class="w-[130px] border-0 bg-transparent outline-none text-[19px] font-bold text-right num text-ink" />
+      </label>
+      <div class="h-px bg-hair"></div>
+      <label class="flex items-center gap-3">
+        <span class="shrink-0 text-[13.5px] text-muted">หมายเหตุ</span>
+        <input id="iNote" value="${esc(S.item.note)}" placeholder="ไม่บังคับ" class="flex-1 min-w-0 border-0 bg-transparent outline-none text-[14.5px] text-right text-ink" />
+      </label>
+
+      <div class="flex items-center gap-3 bg-field rounded-xl p-3">
+        <span class="flex-1 text-[13px] font-semibold text-muted">รวมรายการนี้</span>
+        <span class="text-[17px] font-bold num">${fmt(L * P)} บาท</span>
+      </div>
+      ${S.itemError ? `<span class="text-[12.5px] font-semibold text-danger">${esc(S.itemError)}</span>` : ''}
+      <button data-act="addItem" class="w-full min-h-[52px] border-0 rounded-[14px] bg-accent text-white text-[15.5px] font-bold">เพิ่มรายการ</button>
+    </div>
+  </div>`;
+}
+
+function dupSheet() {
+  const src = S.records[S.dupFrom];
+  if (!src) return '';
+  return `
+  <div class="${SHEET_WRAP}">
+    <div data-act="closeDup" class="absolute inset-0"></div>
+    <div class="${SHEET}">
+      <div class="grid place-items-center py-1"><span class="w-9 h-1 rounded-full bg-bezel"></span></div>
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-[16.5px] font-bold">ทำซ้ำรายการ</span>
+        <button data-act="closeDup" aria-label="ปิด" class="w-8 h-8 rounded-[10px] border-0 bg-hair text-muted grid place-items-center">${svg('close', '', 14, 2.6)}</button>
+      </div>
+      <div class="bg-field rounded-2xl p-3.5 flex flex-col gap-1.5">
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-sm font-bold">${esc(src.fuel)}</span>
+          <span class="text-[15px] font-bold num">${fmt(src.amt)} บาท</span>
+        </div>
+        <span class="text-[12.5px] text-muted num">${fmt(src.liters)} ลิตร · ${src.items.length} รายการ</span>
+        <span class="text-[12.5px] text-muted">${esc(S.vehicle.plate + ' · ' + src.vendor)}</span>
+      </div>
+      <span class="text-[12.5px] text-muted leading-relaxed">ข้อมูลรถ ปั๊ม และรายการน้ำมันคัดลอกมาให้แล้ว เหลือกรอกเฉพาะ 2 ช่องนี้</span>
+      <label class="flex flex-col gap-1.5"><span class="text-[13px] font-bold">วันที่เติมใหม่</span>
+        <input type="date" id="dDate" value="${esc(S.dup.date)}" class="${BOX_INPUT} font-semibold" /></label>
+      <label class="flex flex-col gap-1.5"><span class="text-[13px] font-bold">เลขที่ใบเสร็จใหม่</span>
+        <input id="dReceipt" value="${esc(S.dup.receipt)}" placeholder="เช่น RC-26091702" class="${BOX_INPUT}" /></label>
+      <label class="flex flex-col gap-1.5"><span class="text-[13px] text-muted">เลขไมล์ (กม.)</span>
+        <input id="dOdo" inputmode="numeric" value="${esc(S.dup.odo)}" placeholder="ไม่บังคับ" class="${BOX_INPUT}" /></label>
+      ${S.dupError ? `<span class="text-[12.5px] font-semibold text-danger">${esc(S.dupError)}</span>` : ''}
+      <div class="flex gap-2.5">
+        <button data-act="dupEdit" class="h-[52px] px-4 rounded-[14px] border border-bezel bg-white text-[14.5px] font-bold text-ink">แก้ทั้งรายการ</button>
+        <button data-act="dupConfirm" class="flex-1 min-h-[52px] border-0 rounded-[14px] bg-accent text-white text-[15.5px] font-bold">ยืนยันทำซ้ำ</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function filterSheet() {
+  const ALL = 'ทั้งหมด';
+  const d = S.fDraft;
+  const types = [ALL, ...FUEL_TYPES.filter(t => S.records.some(r => r.items.some(i => i.type === t)))];
+  const count = S.records.filter(r => inFilter(r, d)).length;
+  const bad = d.from && d.to && d.from > d.to;
+  const presets = [['เดือนนี้', 'pThis'], ['30 วัน', 'p30'], ['ปีนี้', 'pYear']];
+
+  const isPreset = a => {
+    const n = new Date(today());
+    if (a === 'pThis') return d.from === new Date(n.getFullYear(), n.getMonth(), 1).toISOString().slice(0, 10) && d.to === today();
+    if (a === 'p30') { const x = new Date(today()); x.setDate(x.getDate() - 29); return d.from === x.toISOString().slice(0, 10) && d.to === today(); }
+    return d.from === today().slice(0, 4) + '-01-01' && d.to === today();
+  };
+  return `
+  <div class="${SHEET_WRAP}">
+    <div data-act="closeFilter" class="absolute inset-0"></div>
+    <div class="${SHEET}">
+      <div class="grid place-items-center py-1"><span class="w-9 h-1 rounded-full bg-bezel"></span></div>
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-[16.5px] font-bold">ตัวกรองประวัติ</span>
+        <button data-act="closeFilter" aria-label="ปิด" class="w-8 h-8 rounded-[10px] border-0 bg-hair text-muted grid place-items-center">${svg('close', '', 14, 2.6)}</button>
+      </div>
+
+      <div class="flex gap-2">
+        ${presets.map(p => {
+          const on = isPreset(p[1]);
+          return `<button data-act="${p[1]}" class="flex-1 min-h-[38px] px-3 rounded-[10px] text-[13px] ${on ? 'border border-accent bg-accent text-white font-bold' : 'border border-bezel bg-white text-ink font-semibold'}">${p[0]}</button>`;
+        }).join('')}
+      </div>
+
+      <div class="${CARD} overflow-hidden">
+        <label class="flex items-center gap-3 px-4 py-3">
+          <span class="shrink-0 w-[118px] text-[13.5px] font-semibold">จากวันที่</span>
+          <input type="date" id="fFrom" value="${esc(d.from)}" class="${INPUT_R} font-semibold" />
+        </label>
+        <div class="h-px bg-hair ml-4"></div>
+        <label class="flex items-center gap-3 px-4 py-3">
+          <span class="shrink-0 w-[118px] text-[13.5px] font-semibold">ถึงวันที่</span>
+          <input type="date" id="fTo" value="${esc(d.to)}" class="${INPUT_R} font-semibold" />
+        </label>
+        <div class="h-px bg-hair ml-4"></div>
+        <label class="flex items-center gap-3 px-4 py-3 relative">
+          <span class="shrink-0 w-[118px] text-[13.5px] font-semibold">ชนิดน้ำมัน</span>
+          <select id="fType" class="${INPUT_R} appearance-none font-semibold pr-6">
+            ${types.map(t => `<option value="${esc(t)}" ${d.type === t ? 'selected' : ''}>${t === ALL ? 'ทุกชนิด' : t}</option>`).join('')}
+          </select>
+          <span class="absolute right-3.5 text-[#B9BEC5] pointer-events-none">${svg('chevD', '', 15, 2.4)}</span>
+        </label>
+        <div class="h-px bg-hair ml-4"></div>
+        <label class="flex items-center gap-3 px-4 py-3 relative">
+          <span class="shrink-0 w-[118px] text-[13.5px] font-semibold">รถ</span>
+          <select id="fPlate" class="${INPUT_R} appearance-none font-semibold pr-6">
+            ${S.fleet.map(v => `<option value="${esc(v.plate)}" ${d.plate === v.plate ? 'selected' : ''}>${esc(v.plate + ' · ' + v.brand)}</option>`).join('')}
+          </select>
+          <span class="absolute right-3.5 text-[#B9BEC5] pointer-events-none">${svg('chevD', '', 15, 2.4)}</span>
+        </label>
+      </div>
+      ${bad ? `<span class="text-[12.5px] font-semibold text-danger">วันที่เริ่มต้องมาก่อนวันที่สิ้นสุด</span>` : ''}
+
+      <div class="flex gap-2.5">
+        <button data-act="fReset" class="h-[52px] px-4 rounded-[14px] border border-bezel bg-white text-[14.5px] font-bold text-ink">ล้างค่า</button>
+        <button data-act="fApply" class="flex-1 min-h-[52px] border-0 rounded-[14px] text-[15.5px] font-bold ${bad ? 'bg-bezel text-faint' : 'bg-accent text-white'}">แสดง ${bad ? 0 : count} รายการ</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function vehicleSheet() {
+  const q = S.vQuery.trim().toLowerCase();
+  const list = S.fleet.filter(v => !q || (v.plate + ' ' + v.brand + ' ' + v.model + ' ' + v.dept).toLowerCase().includes(q));
+  return `
+  <div class="fixed inset-0 z-[70] flex justify-center items-end bg-ink/40">
+    <div data-act="closeVehicle" class="absolute inset-0"></div>
+    <div class="relative w-full max-w-[420px] bg-white rounded-t-[20px] px-4 pt-2 pb-5 flex flex-col gap-3 animate-sheetUp max-h-[88vh]">
+      <div class="grid place-items-center py-1"><span class="w-9 h-1 rounded-full bg-bezel"></span></div>
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-[16.5px] font-bold">เลือกรถ</span>
+        <button data-act="closeVehicle" aria-label="ปิด" class="w-8 h-8 rounded-[10px] border-0 bg-hair text-muted grid place-items-center">${svg('close', '', 14, 2.6)}</button>
+      </div>
+      <label class="flex items-center gap-2.5 bg-field border border-hair rounded-xl px-3.5 py-3 focus-within:border-accent">
+        ${svg('search', 'shrink-0 text-muted', 17, 2.2)}
+        <input id="vQuery" value="${esc(S.vQuery)}" placeholder="ค้นหาทะเบียน ยี่ห้อ หรือหน่วยงาน" class="flex-1 min-w-0 border-0 outline-none bg-transparent text-[14.5px] text-ink" />
+        ${S.vQuery ? `<button data-act="clearV" aria-label="ล้างคำค้น" class="w-[22px] h-[22px] rounded-[7px] border-0 bg-bezel text-muted grid place-items-center shrink-0">${svg('close', '', 11, 3)}</button>` : ''}
+      </label>
+      <span class="text-xs text-muted font-semibold">${S.vQuery.trim() ? 'พบ ' + list.length + ' คัน' : 'รถในความดูแล ' + S.fleet.length + ' คัน'}</span>
+      <div class="flex flex-col overflow-y-auto max-h-[46vh] -mx-1">
+        ${list.map(v => {
+          const on = v.plate === S.vehicle.plate;
+          return `<button data-act="pickV:${v.plate}" class="flex items-center gap-3 px-1 py-3 border-0 rounded-xl w-full text-ink ${on ? 'bg-accent-t' : 'bg-transparent'}">
+            <span class="shrink-0 min-w-[92px] text-center px-2.5 py-1.5 rounded-[9px] bg-white text-[13px] font-bold num ${on ? 'border border-accent' : 'border border-bezel'}">${esc(v.plate)}</span>
+            <span class="flex-1 min-w-0 flex flex-col gap-0.5 text-left">
+              <span class="text-[14.5px] font-bold truncate">${esc(v.brand + ' ' + v.model)}</span>
+              <span class="text-xs text-muted truncate">${esc(v.dept)}</span>
+            </span>
+            ${on ? `<span class="shrink-0 text-accent">${svg('check', '', 18, 2.6)}</span>` : ''}
+          </button>`;
+        }).join('')}
+        ${list.length === 0 ? `<p class="mx-1 my-3 text-[13px] text-muted">ไม่พบรถที่ตรงกับ “${esc(S.vQuery)}”</p>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- render + events ---------- */
+function render() {
+  const screens = { home, form, report, detail, history };
+  document.getElementById('app').innerHTML =
+    `<div class="w-full max-w-[420px] bg-field min-h-screen relative flex flex-col">
+      ${screens[S.page]()}
+      ${S.itemSheet ? itemSheet() : ''}
+      ${S.dupSheet ? dupSheet() : ''}
+      ${S.filterSheet ? filterSheet() : ''}
+      ${S.vehicleSheet ? vehicleSheet() : ''}
+      ${S.toast ? `<div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[80] bg-ink/95 text-white rounded-full px-4.5 py-2.5 text-[13px] font-semibold whitespace-nowrap">${esc(S.toast)}</div>` : ''}
+    </div>`;
+}
+
+const FIELD_MAP = {
+  hQuery: v => S.hQuery = v, vQuery: v => S.vQuery = v,
+  fFrom: v => S.fDraft.from = v, fTo: v => S.fDraft.to = v, fType: v => S.fDraft.type = v,
+  fPlate: v => S.fDraft.plate = v,
+  rPlate: v => { const x = S.fleet.find(f => f.plate === v); if (x) S.vehicle = x; },
+  fDate: v => S.form.date = v, fVendor: v => S.form.vendor = v, fOdo: v => S.form.odo = v,
+  fReceipt: v => S.form.receipt = v, fNote: v => S.form.note = v,
+  iType: v => S.item.type = v, iLiters: v => S.item.liters = v, iPrice: v => S.item.price = v, iNote: v => S.item.note = v,
+  dDate: v => S.dup.date = v, dReceipt: v => S.dup.receipt = v, dOdo: v => S.dup.odo = v
+};
+
+document.addEventListener('input', e => {
+  const set = FIELD_MAP[e.target.id];
+  if (!set) return;
+  set(e.target.value);
+  if (['fFrom', 'fTo', 'fType', 'fPlate', 'rPlate'].includes(e.target.id)) return render();
+  if (['hQuery', 'vQuery'].includes(e.target.id)) {
+    const id = e.target.id, pos = e.target.selectionStart;
+    render();
+    const el = document.getElementById(id);
+    if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (_) {} }
+  }
+});
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const [act, arg] = btn.dataset.act.split(/:(.+)/);
+  const A = {
+    home: () => go('home'), form: () => go('form'), report: () => go('report'), history: () => go('history'),
+    openFilter: () => { S.fDraft = { ...S.filter, plate: S.vehicle.plate }; S.filterSheet = true; render(); },
+    closeFilter: () => { S.filterSheet = false; render(); },
+    pThis: () => { const n = new Date(today()); S.fDraft.from = new Date(n.getFullYear(), n.getMonth(), 1).toISOString().slice(0, 10); S.fDraft.to = today(); render(); },
+    p30: () => { const n = new Date(today()); n.setDate(n.getDate() - 29); S.fDraft.from = n.toISOString().slice(0, 10); S.fDraft.to = today(); render(); },
+    pYear: () => { S.fDraft.from = today().slice(0, 4) + '-01-01'; S.fDraft.to = today(); render(); },
+    fReset: () => { S.fDraft = { from: '', to: '', type: 'ทั้งหมด', plate: S.vehicle.plate }; render(); },
+    fApply: () => {
+      const d = S.fDraft;
+      if (d.from && d.to && d.from > d.to) return render();
+      const v = S.fleet.find(f => f.plate === d.plate);
+      if (v) S.vehicle = v;
+      S.filter = { from: d.from, to: d.to, type: d.type }; S.filterSheet = false; render();
+    },
+    hClear: () => { S.filter = { from: '', to: '', type: 'ทั้งหมด' }; render(); },
+    toast: () => toast(arg),
+    detail: () => { S.view = +arg; go('detail'); },
+    clearV: () => { S.vQuery = ''; render(); },
+    vehicle: () => { S.vehicleSheet = true; S.vQuery = ''; render(); },
+    closeVehicle: () => { S.vehicleSheet = false; render(); },
+    pickV: () => { S.vehicle = S.fleet.find(v => v.plate === arg); S.vehicleSheet = false; toast('เลือก ' + arg + ' แล้ว'); },
+    range: () => { S.range = arg; render(); },
+    openItem: () => { S.itemSheet = true; S.itemError = ''; S.item = { type: FUEL_TYPES[0], liters: '', price: '', note: '' }; render(); },
+    closeItem: () => { S.itemSheet = false; render(); },
+    iType: () => { S.item.type = arg === 'อื่น ๆ' ? '' : arg; S.itemError = ''; render(); },
+    chip: () => { S.item.liters = arg === 'เต็มถัง' ? '45.00' : parseFloat(arg).toFixed(2); render(); },
+    addItem: () => {
+      const it = S.item, type = it.type.trim(), L = parseFloat(it.liters), P = parseFloat(it.price);
+      if (!type) return (S.itemError = 'ระบุชนิดน้ำมัน', render());
+      if (!L) return (S.itemError = 'กรอกปริมาณ (ลิตร)', render());
+      if (!P) return (S.itemError = 'กรอกราคาต่อลิตร', render());
+      S.items.push({ type, liters: L, price: P, note: it.note.trim() });
+      S.itemSheet = false; S.itemError = ''; S.item = { type: FUEL_TYPES[0], liters: '', price: '', note: '' };
+      toast('เพิ่มรายการแล้ว');
+    },
+    delItem: () => { S.items.splice(+arg, 1); toast('ลบรายการแล้ว'); },
+    addPhoto: () => { S.photo = 'receipt-0917.jpg'; toast('แนบรูปใบเสร็จแล้ว'); },
+    clearPhoto: () => { S.photo = null; render(); },
+    save: () => {
+      const f = S.form;
+      if (!S.items.length) return toast('เพิ่มรายการน้ำมันก่อนบันทึก');
+      if (!f.date) return toast('เลือกวันที่เติม');
+      if (!f.vendor.trim()) return toast('กรอกชื่อปั๊มน้ำมัน');
+      if (needReceipt() && !f.receipt.trim()) return toast('กรอกเลขที่ใบเสร็จ');
+      const t = totals(S.items);
+      S.records.unshift({ date: f.date, vendor: f.vendor.trim(),
+        fuel: S.items.length > 1 ? S.items.map(i => i.type).join(' + ') : S.items[0].type,
+        liters: t.liters, amt: t.amt, receipt: f.receipt.trim(), note: f.note.trim(), odo: f.odo,
+        items: S.items.map(i => ({ ...i })), isNew: !!f.dupNotice });
+      S.items = []; S.photo = null; S.page = 'home';
+      S.form = { date: today(), vendor: f.vendor.trim(), odo: '', receipt: '', note: '', dupNotice: '' };
+      toast('บันทึกการเติมน้ำมันแล้ว');
+    },
+    del: () => { S.records.splice(S.view, 1); S.view = null; S.page = 'home'; toast('ลบรายการแล้ว'); },
+    dupLatest: () => { if (!S.records.length) return toast('ยังไม่มีรายการให้ทำซ้ำ'); A.dup_open(0); },
+    dup: () => A.dup_open(+arg),
+    dup_open: i => { S.dupFrom = i; S.dupSheet = true; S.dupError = ''; S.dup = { date: today(), receipt: '', odo: '' }; S.page = 'home'; render(); },
+    closeDup: () => { S.dupSheet = false; render(); },
+    dupConfirm: () => {
+      const src = S.records[S.dupFrom], d = S.dup;
+      if (!d.date || d.date === src.date) return (S.dupError = 'เปลี่ยนวันที่เติมให้ต่างจากรายการเดิมก่อน', render());
+      if (!d.receipt.trim() || d.receipt.trim() === src.receipt) return (S.dupError = 'กรอกเลขที่ใบเสร็จใหม่', render());
+      S.records.unshift({ ...src, date: d.date, receipt: d.receipt.trim(), odo: d.odo, isNew: true });
+      S.dupSheet = false; S.dupFrom = null; S.page = 'home';
+      toast('ทำซ้ำรายการแล้ว');
+    },
+    dupEdit: () => {
+      const src = S.records[S.dupFrom], d = S.dup;
+      S.items = src.items.map(i => ({ ...i }));
+      S.form = { date: d.date || today(), vendor: src.vendor, odo: d.odo, receipt: d.receipt, note: '',
+        dupNotice: 'คัดลอกจากรายการ ' + thDate(src.date) + ' — ต้องเปลี่ยนวันที่เติมและเลขที่ใบเสร็จก่อนบันทึก' };
+      S.dupSheet = false; go('form');
+    }
+  };
+  if (A[act]) A[act]();
+});
+
+render();
+</script>
+</body>
+</html>
