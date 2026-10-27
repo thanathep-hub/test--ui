@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>VAM Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script src="https://unpkg.com/lucide@0.452.0/dist/umd/lucide.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Noto Sans Thai"', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          colors: { navy: '#14213d' },
+        },
+      },
+    };
+    // restore collapsed state before paint
+    try { if (localStorage.getItem('vam-sb') === '1') document.documentElement.classList.add('sb-collapsed'); } catch (e) {}
+  </script>
+  <style>
+    [data-lucide] { width: 18px; height: 18px; stroke-width: 1.75; flex-shrink: 0; }
+    .no-scrollbar { scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    /* Sidebar — mobile first: off-canvas drawer */
+    #sidebar { width: 280px; position: fixed; inset: 0 auto 0 0; z-index: 50; transform: translateX(-100%); transition: transform .25s ease, width .2s ease; }
+    #sidebar .sb-label { white-space: nowrap; overflow: hidden; }
+    html.sb-open #sidebar { transform: none; box-shadow: 0 10px 40px rgba(15, 23, 42, .18); }
+    html.sb-open #sb-backdrop { opacity: 1; pointer-events: auto; }
+    html.sb-open body { overflow: hidden; }
+
+    @media (min-width: 1024px) {
+      #sidebar { width: 240px; position: sticky; top: 0; transform: none; }
+      html.sb-open body { overflow: auto; }
+      html.sb-collapsed #sidebar { width: 72px; }
+      html.sb-collapsed #sidebar .sb-label { display: none; }
+      html.sb-collapsed #sidebar .sb-item { justify-content: center; padding-left: 0; padding-right: 0; }
+      html.sb-collapsed #sidebar .sb-section { padding: 0; margin: 14px 12px 8px; height: 1px; background: #e2e8f0; font-size: 0; }
+      html.sb-collapsed #sidebar .sb-brand { justify-content: center; padding-left: 0; padding-right: 0; }
+      html.sb-collapsed #sidebar .sb-user { justify-content: center; padding-left: 0; padding-right: 0; }
+      html.sb-collapsed #sidebar [data-tip] { position: relative; }
+      html.sb-collapsed #sidebar [data-tip]:hover::after {
+        content: attr(data-tip); position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+        background: #14213d; color: #fff; font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 50;
+      }
+    }
+
+    /* motion */
+    .fade-in { animation: fade-in .22s ease-out; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .bar-seg { transition: background-color .2s ease, height .35s cubic-bezier(.2,.7,.2,1); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased">
+<div class="flex min-h-screen">
+
+  <div id="sb-backdrop" class="pointer-events-none fixed inset-0 z-40 bg-slate-900/30 opacity-0 transition-opacity lg:hidden" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="flex h-[100dvh] shrink-0 flex-col border-r border-slate-200 bg-white" aria-label="เมนูหลัก">
+    <div class="sb-brand flex h-16 items-center gap-3 border-b border-slate-200 px-5 lg:h-[75px]">
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy text-white">
+        <i data-lucide="truck"></i>
+      </div>
+      <div class="sb-label flex-1 leading-tight">
+        <div class="text-[15px] font-semibold text-navy">VAM Overview</div>
+        <div class="text-xs text-slate-500">ภาพรวมข้อมูลยานพาหนะ</div>
+      </div>
+      <button onclick="closeSidebar()" class="-mr-2 flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="ปิดเมนู"><i data-lucide="x"></i></button>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 text-sm">
+      <a href="#" data-tip="แอปทั้งหมด" class="sb-item mb-2 flex items-center justify-between rounded-lg px-3 py-2.5 text-[13px] text-slate-600 hover:bg-slate-50">
+        <span class="sb-label flex items-center gap-2"><i data-lucide="chevron-left" class="!h-4 !w-4"></i>แอปทั้งหมด</span>
+        <i data-lucide="layout-grid" class="!h-4 !w-4 text-slate-500"></i>
+      </a>
+      <a href="#" data-tip="ภาพรวม" aria-current="page" class="sb-item flex items-center gap-3 rounded-lg bg-slate-100 px-3 py-3 font-medium text-navy lg:py-2.5">
+        <i data-lucide="layout-dashboard"></i><span class="sb-label">ภาพรวม</span>
+      </a>
+      <a href="#" data-tip="ข้อมูลรถ" class="sb-item mt-1 flex items-center gap-3 rounded-lg px-3 py-3 text-slate-700 hover:bg-slate-50 lg:py-2.5">
+        <i data-lucide="car-front"></i><span class="sb-label">ข้อมูลรถ</span>
+      </a>
+
+      <div class="sb-section mt-5 px-3 pb-2 text-xs font-medium text-slate-500">เร็วๆ นี้</div>
+      <div class="space-y-1 text-slate-500" aria-disabled="true">
+        <span data-tip="การใช้น้ำมัน (เร็วๆ นี้)" class="sb-item flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5"><i data-lucide="fuel" class="text-slate-400"></i><span class="sb-label">การใช้น้ำมัน</span></span>
+        <span data-tip="ซ่อมบำรุง (เร็วๆ นี้)" class="sb-item flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5"><i data-lucide="wrench" class="text-slate-400"></i><span class="sb-label">ซ่อมบำรุง</span></span>
+        <span data-tip="ต้นทุนและค่าใช้จ่าย (เร็วๆ นี้)" class="sb-item flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5"><i data-lucide="wallet" class="text-slate-400"></i><span class="sb-label">ต้นทุนและค่าใช้จ่าย</span></span>
+        <span data-tip="เอกสารและแจ้งเตือน (เร็วๆ นี้)" class="sb-item flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5"><i data-lucide="file-warning" class="text-slate-400"></i><span class="sb-label">เอกสารและแจ้งเตือน</span></span>
+        <span data-tip="รายงาน (เร็วๆ นี้)" class="sb-item flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5"><i data-lucide="chart-no-axes-combined" class="text-slate-400"></i><span class="sb-label">รายงาน</span></span>
+      </div>
+    </nav>
+
+    <div class="sb-user pb-safe flex items-center gap-3 border-t border-slate-200 px-5 py-4">
+      <div data-tip="ธนเทพ · โปรแกรมเมอร์" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700">ธส</div>
+      <div class="sb-label flex-1 leading-tight">
+        <div class="text-sm font-medium">ธนเทพ</div>
+        <div class="text-xs text-slate-500">โปรแกรมเมอร์</div>
+      </div>
+      <button class="sb-label flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700" title="ออกจากระบบ" aria-label="ออกจากระบบ"><i data-lucide="log-out"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:h-[75px] lg:px-8">
+      <div class="flex min-w-0 items-center gap-3 lg:gap-5">
+        <button onclick="toggleSidebar()" class="-ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-800 lg:ml-0 lg:h-9 lg:w-9 lg:rounded-md lg:text-slate-500" title="เมนู" aria-label="เปิด/พับ แถบเมนู">
+          <i data-lucide="panel-left"></i>
+        </button>
+        <div class="min-w-0 leading-tight">
+          <h1 class="text-base font-semibold text-navy lg:text-lg">ภาพรวม</h1>
+          <p class="truncate text-xs text-slate-500">อังคาร 27 ต.ค. 2569</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 lg:gap-4">
+        <button class="hidden w-72 items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 md:flex">
+          <span class="flex items-center gap-2"><i data-lucide="building-2" class="!h-4 !w-4 text-slate-500"></i>บริษัท กรีนซีดส์ จำกัด</span>
+          <i data-lucide="chevron-down" class="!h-4 !w-4 text-slate-500"></i>
+        </button>
+        <button class="relative -mr-2 flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100" aria-label="การแจ้งเตือน (มีรายการใหม่)">
+          <i data-lucide="bell" class="!h-5 !w-5"></i>
+          <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+        </button>
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-[1400px] space-y-3 px-4 pb-[calc(24px+env(safe-area-inset-bottom))] pt-4 sm:space-y-4 sm:px-6 lg:pb-8">
+
+      <!-- Context: company + period -->
+      <div class="space-y-3 md:flex md:flex-row-reverse md:items-center md:justify-between md:gap-4 md:space-y-0">
+        <button class="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 md:hidden">
+          <span class="flex min-w-0 items-center gap-2"><i data-lucide="building-2" class="!h-4 !w-4 text-slate-500"></i><span class="truncate">บริษัท กรีนซีดส์ จำกัด</span></span>
+          <i data-lucide="chevron-down" class="!h-4 !w-4 text-slate-500"></i>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <div class="grid flex-1 grid-cols-4 gap-1 rounded-xl bg-slate-200/60 p-1 text-[13px] sm:text-sm md:flex-none" role="tablist" aria-label="ช่วงเวลา">
+            <button role="tab" aria-selected="true" class="period-tab h-9 whitespace-nowrap rounded-lg px-2 font-medium sm:px-3">เดือนนี้</button>
+            <button role="tab" aria-selected="false" class="period-tab h-9 whitespace-nowrap rounded-lg px-2 sm:px-3">3 เดือน</button>
+            <button role="tab" aria-selected="false" class="period-tab h-9 whitespace-nowrap rounded-lg px-2 sm:px-3">12 เดือน</button>
+            <button role="tab" aria-selected="false" class="period-tab h-9 whitespace-nowrap rounded-lg px-2 sm:px-3">ปีนี้</button>
+          </div>
+          <button class="flex h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 sm:w-auto sm:px-3 sm:text-sm" aria-label="เลือกช่วงอื่น">
+            <i data-lucide="calendar-days" class="!h-4 !w-4"></i><span class="hidden sm:inline">ช่วงอื่น</span>
+          </button>
+        </div>
+
+        <p class="text-[13px] text-slate-600">1–27 ต.ค. 2569 <span class="text-slate-500">· เทียบ 1–27 ก.ย.</span></p>
+      </div>
+
+      <!-- Hero: fleet status -->
+      <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-labelledby="fleet-h">
+        <div class="grid gap-5 p-4 sm:p-6 lg:grid-cols-[1fr_minmax(0,400px)] lg:gap-10">
+          <div>
+            <div class="flex items-center justify-between gap-3">
+              <h2 id="fleet-h" class="text-sm font-semibold text-navy">สถานะรถ <span class="font-normal text-slate-500">· ณ วันนี้</span></h2>
+              <a href="#" class="-mr-1 flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1 py-1 text-[13px] font-medium text-navy hover:underline">ดูรถทั้งหมด <i data-lucide="chevron-right" class="!h-4 !w-4"></i></a>
+            </div>
+
+            <div class="mt-3 flex items-end gap-2.5">
+              <span class="tabular text-5xl font-bold leading-none tracking-tight text-navy">85</span>
+              <span class="pb-0.5 text-sm leading-snug text-slate-700">รถที่ใช้งานอยู่<br /><span class="text-slate-500">จากทั้งหมด 108 คัน</span></span>
+            </div>
+
+            <div class="mt-4 flex h-2.5 gap-0.5 overflow-hidden rounded-full" role="img" aria-label="ใช้งาน 84 คัน ซ่อม 1 คัน งดใช้หรือรอจำหน่าย 23 คัน">
+              <div class="bg-emerald-500" style="width:77.8%"></div>
+              <div class="bg-amber-500" style="width:1.6%"></div>
+              <div class="bg-slate-300" style="width:21.3%"></div>
+            </div>
+            <dl class="mt-3 grid grid-cols-3 gap-2 text-[13px]">
+              <div><dt class="flex items-center gap-1.5 text-slate-600"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>ใช้งาน</dt><dd class="tabular mt-0.5 font-semibold text-slate-900">84</dd></div>
+              <div><dt class="flex items-center gap-1.5 text-slate-600"><span class="h-2 w-2 rounded-full bg-amber-500"></span>ซ่อม</dt><dd class="tabular mt-0.5 font-semibold text-slate-900">1</dd></div>
+              <div><dt class="flex items-center gap-1.5 whitespace-nowrap text-slate-600"><span class="h-2 w-2 shrink-0 rounded-full bg-slate-300"></span>งดใช้/รอจำหน่าย</dt><dd class="tabular mt-0.5 font-semibold text-slate-900">23</dd></div>
+            </dl>
+          </div>
+
+          <!-- Primary action -->
+          <div class="-mx-4 -mb-4 border-t border-amber-200 bg-amber-50 px-4 py-4 sm:-mx-6 sm:-mb-6 sm:px-6 lg:-my-6 lg:-mr-6 lg:ml-0 lg:flex lg:flex-col lg:justify-center lg:border-l lg:border-t-0 lg:px-8">
+            <div class="flex items-center gap-3">
+              <svg viewBox="0 0 64 64" class="h-11 w-11 shrink-0" aria-hidden="true">
+                <defs>
+                  <linearGradient id="cbBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdba74"/><stop offset="1" stop-color="#ea580c"/></linearGradient>
+                  <linearGradient id="wrench" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2e8f0"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+                </defs>
+                <ellipse cx="32" cy="58" rx="20" ry="3" fill="#0f172a" opacity=".12"/>
+                <rect x="10" y="8" width="34" height="46" rx="5" fill="url(#cbBody)"/>
+                <rect x="14" y="13" width="26" height="37" rx="2.5" fill="#fff"/>
+                <rect x="19" y="5" width="16" height="8" rx="3" fill="#475569"/>
+                <rect x="23" y="7" width="8" height="3" rx="1.5" fill="#94a3b8"/>
+                <path d="M18 22l3 3 5-6" fill="none" stroke="#16a34a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="29" y="21" width="8" height="2.6" rx="1.3" fill="#fdba74"/>
+                <path d="M18 32l3 3 5-6" fill="none" stroke="#16a34a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="29" y="31" width="8" height="2.6" rx="1.3" fill="#fdba74"/>
+                <rect x="18" y="41" width="10" height="2.6" rx="1.3" fill="#e2e8f0"/>
+                <g transform="rotate(-45 46 44)">
+                  <rect x="43" y="34" width="6" height="22" rx="3" fill="url(#wrench)"/>
+                  <path d="M38 30a8 8 0 0 1 16 0l-3 0-1.5-4h-7l-1.5 4z" fill="url(#wrench)"/>
+                  <circle cx="46" cy="30" r="5.5" fill="url(#wrench)"/>
+                  <rect x="44" y="24" width="4" height="7" rx="1" fill="#fef3c7"/>
+                </g>
+              </svg>
+              <div class="min-w-0">
+                <div class="text-xs font-semibold text-orange-700">ต้องตรวจสอบ</div>
+                <div class="text-sm text-slate-800"><span class="font-semibold">50 คัน</span> ไม่มีข้อมูลไมล์เกิน 30 วัน</div>
+              </div>
+            </div>
+            <a href="#" class="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 text-sm font-medium text-white transition-colors hover:bg-[#1d2d52] active:scale-[.99]">
+              ตรวจข้อมูลรถ <i data-lucide="arrow-right" class="!h-4 !w-4"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPIs: list on phone, cards from md -->
+      <section class="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white md:grid md:grid-cols-3 md:gap-3 md:divide-y-0 md:rounded-none md:border-0 md:bg-transparent" aria-label="ตัวชี้วัดหลัก">
+        <div class="flex items-center gap-3 px-4 py-3.5 md:flex-row-reverse md:justify-between md:rounded-2xl md:border md:border-slate-200 md:bg-white md:py-5">
+          <svg viewBox="0 0 64 64" class="h-11 w-11 shrink-0 md:h-12 md:w-12 lg:h-16 lg:w-16" aria-hidden="true">
+            <defs>
+              <linearGradient id="coinTop" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+              <linearGradient id="coinSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d97706"/><stop offset=".5" stop-color="#f59e0b"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+              <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffbeb"/><stop offset="1" stop-color="#fde9b8"/></linearGradient>
+            </defs>
+            <ellipse cx="34" cy="58" rx="22" ry="3.5" fill="#0f172a" opacity=".12"/>
+            <path d="M14 6h28a3 3 0 0 1 3 3v43l-3.8-2.6-3.8 2.6-3.8-2.6-3.8 2.6-3.8-2.6-3.8 2.6-3.8-2.6L11 52V9a3 3 0 0 1 3-3z" fill="url(#paper)" stroke="#f3cf7a" stroke-width="1"/>
+            <rect x="17" y="13" width="14" height="3" rx="1.5" fill="#f59e0b"/>
+            <rect x="17" y="21" width="22" height="2.4" rx="1.2" fill="#e7d3a3"/>
+            <rect x="17" y="27" width="18" height="2.4" rx="1.2" fill="#e7d3a3"/>
+            <rect x="17" y="33" width="20" height="2.4" rx="1.2" fill="#e7d3a3"/>
+            <rect x="17" y="39" width="12" height="2.4" rx="1.2" fill="#e7d3a3"/>
+            <g>
+              <rect x="34" y="48" width="24" height="6" fill="url(#coinSide)"/><ellipse cx="46" cy="54" rx="12" ry="3.5" fill="#b45309"/><ellipse cx="46" cy="48" rx="12" ry="3.5" fill="url(#coinTop)"/>
+              <rect x="34" y="42" width="24" height="6" fill="url(#coinSide)"/><ellipse cx="46" cy="42" rx="12" ry="3.5" fill="url(#coinTop)"/>
+              <rect x="34" y="36" width="24" height="6" fill="url(#coinSide)"/><ellipse cx="46" cy="36" rx="12" ry="3.5" fill="url(#coinTop)"/>
+              <ellipse cx="46" cy="36" rx="7" ry="1.8" fill="none" stroke="#fffbeb" stroke-width="1" opacity=".7"/>
+            </g>
+          </svg>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13px] text-slate-600 md:text-sm">ค่าใช้จ่าย <span class="text-slate-500">(ไม่รวมซื้อรถ)</span></div>
+            <div class="flex flex-wrap items-baseline gap-x-2 md:block">
+              <div class="tabular text-xl font-bold text-navy md:mt-2 md:text-2xl">฿142,722</div>
+              <div class="flex items-center gap-1 text-xs md:mt-1">
+                <span class="flex items-center font-medium text-emerald-700"><i data-lucide="arrow-down-right" class="!h-3.5 !w-3.5"></i>17.1%</span>
+                <span class="text-slate-500">เทียบช่วงก่อน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-4 py-3.5 md:flex-row-reverse md:justify-between md:rounded-2xl md:border md:border-slate-200 md:bg-white md:py-5">
+          <svg viewBox="0 0 64 64" class="h-11 w-11 shrink-0 md:h-12 md:w-12 lg:h-16 lg:w-16" aria-hidden="true">
+            <defs>
+              <linearGradient id="mapA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#0d9488"/></linearGradient>
+              <linearGradient id="mapB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#99f6e4"/><stop offset="1" stop-color="#14b8a6"/></linearGradient>
+              <linearGradient id="pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ade80"/><stop offset="1" stop-color="#15803d"/></linearGradient>
+            </defs>
+            <ellipse cx="32" cy="56" rx="26" ry="4" fill="#0f172a" opacity=".12"/>
+            <path d="M4 40l14-8 14 6 14-8 14 8-14 10-14-6-14 8z" fill="#0f766e"/>
+            <path d="M4 37l14-8v6L4 43z" fill="url(#mapA)"/>
+            <path d="M18 29l14 6v6l-14-6z" fill="url(#mapB)"/>
+            <path d="M32 35l14-8v6l-14 8z" fill="url(#mapA)"/>
+            <path d="M46 27l14 8v6l-14-8z" fill="url(#mapB)"/>
+            <path d="M4 37l14-8 14 6 14-8 14 8-14 10-14-6-14 8z" fill="url(#mapB)" opacity=".9"/>
+            <path d="M10 42c6-4 10-2 16 0s10 0 14-3 8-4 12-2" fill="none" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
+            <path d="M10 42c6-4 10-2 16 0s10 0 14-3 8-4 12-2" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="2 2" stroke-linecap="round"/>
+            <path d="M44 6a10 10 0 0 1 10 10c0 8-10 19-10 19S34 24 34 16A10 10 0 0 1 44 6z" fill="url(#pin)"/>
+            <circle cx="44" cy="16" r="4" fill="#fff"/>
+          </svg>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13px] text-slate-600 md:text-sm">ระยะทางรวม</div>
+            <div class="flex flex-wrap items-baseline gap-x-2 md:block">
+              <div class="tabular text-xl font-bold text-navy md:mt-2 md:text-2xl">20,551 กม.</div>
+              <div class="flex items-center gap-1 text-xs md:mt-1">
+                <span class="flex items-center font-medium text-slate-700"><i data-lucide="arrow-down-right" class="!h-3.5 !w-3.5"></i>46.7%</span>
+                <span class="text-slate-500">เทียบช่วงก่อน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-4 py-3.5 md:flex-row-reverse md:justify-between md:rounded-2xl md:border md:border-slate-200 md:bg-white md:py-5">
+          <svg viewBox="0 0 64 64" class="h-11 w-11 shrink-0 md:h-12 md:w-12 lg:h-16 lg:w-16" aria-hidden="true">
+            <defs>
+              <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d28d9"/></linearGradient>
+              <linearGradient id="col" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ede9fe"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient>
+              <linearGradient id="base" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#5b21b6"/></linearGradient>
+            </defs>
+            <ellipse cx="32" cy="58" rx="24" ry="3.5" fill="#0f172a" opacity=".12"/>
+            <path d="M32 4l24 13H8z" fill="url(#roof)"/>
+            <circle cx="32" cy="12" r="2.5" fill="#fde68a"/>
+            <rect x="8" y="17" width="48" height="5" rx="1" fill="#7c3aed"/>
+            <rect x="12" y="22" width="6" height="22" fill="url(#col)"/>
+            <rect x="23" y="22" width="6" height="22" fill="url(#col)"/>
+            <rect x="35" y="22" width="6" height="22" fill="url(#col)"/>
+            <rect x="46" y="22" width="6" height="22" fill="url(#col)"/>
+            <rect x="8" y="44" width="48" height="4" rx="1" fill="url(#base)"/>
+            <rect x="5" y="48" width="54" height="5" rx="1.5" fill="url(#base)"/>
+            <g>
+              <rect x="44" y="47" width="16" height="4" fill="#d97706"/>
+              <ellipse cx="52" cy="51" rx="8" ry="2.6" fill="#b45309"/>
+              <ellipse cx="52" cy="47" rx="8" ry="2.6" fill="url(#coinTop)"/>
+            </g>
+          </svg>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13px] text-slate-600 md:text-sm">มูลค่าคงเหลือสุทธิ</div>
+            <div class="flex flex-wrap items-baseline gap-x-2 md:block">
+              <div class="tabular text-xl font-bold text-navy md:mt-2 md:text-2xl">฿916,359</div>
+              <div class="text-xs text-slate-500 md:mt-1">ณ วันนี้</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data basis -->
+      <section class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] text-slate-600 md:flex md:flex-wrap md:items-center md:gap-x-6 md:gap-y-1" aria-label="ฐานข้อมูลที่ใช้คำนวณ">
+        <div class="mb-2 flex items-center gap-1.5 font-medium text-slate-700 md:mb-0"><i data-lucide="database" class="!h-4 !w-4 text-slate-500"></i>ฐานข้อมูลที่ใช้คำนวณ</div>
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-1.5 md:flex md:flex-wrap md:gap-x-6">
+          <div class="flex justify-between gap-2 md:block"><dt class="inline">เลขไมล์</dt> <dd class="tabular inline font-semibold text-slate-900">20/85 คัน</dd></div>
+          <div class="flex justify-between gap-2 md:block"><dt class="inline">มูลค่าทรัพย์สิน</dt> <dd class="tabular inline font-semibold text-slate-900">47/85 คัน</dd></div>
+          <div class="flex justify-between gap-2 md:block"><dt class="inline">ต้นทุน/คัน</dt> <dd class="tabular inline font-semibold text-slate-900">43 คัน</dd></div>
+          <div class="flex justify-between gap-2 md:block"><dt class="inline">ต้นทุน/กม.</dt> <dd class="tabular inline font-semibold text-slate-900">22 คัน</dd></div>
+        </dl>
+      </section>
+
+      <!-- Usage + cost -->
+      <section class="grid gap-3 sm:gap-4 xl:grid-cols-2">
+        <!-- Usage -->
+        <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex min-w-0 items-start gap-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><i data-lucide="route"></i></div>
+              <div class="min-w-0">
+                <h3 class="font-semibold text-navy">การใช้งานรถ</h3>
+                <p class="text-[13px] text-slate-500">1–27 ต.ค. 2569</p>
+              </div>
+            </div>
+            <a href="#" class="-mr-1 mt-1 flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1 py-1 text-[13px] font-medium text-navy hover:underline">ดูทั้งหมด <i data-lucide="chevron-right" class="!h-4 !w-4"></i></a>
+          </div>
+
+          <div class="mt-5 grid grid-cols-2 gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div class="text-[13px] text-slate-500">รถที่มีการใช้งาน</div>
+              <div class="tabular mt-0.5 text-xl font-bold text-navy">20<span class="text-base font-semibold text-slate-500"> / 85 คัน</span></div>
+            </div>
+            <div>
+              <div class="text-[13px] text-slate-500">เฉลี่ยต่อคัน</div>
+              <div class="tabular mt-0.5 text-xl font-bold text-navy">1,028 กม.</div>
+            </div>
+          </div>
+
+          <div class="mt-4 grid gap-6 md:grid-cols-2">
+            <div>
+              <div class="text-[13px] font-medium text-slate-700">ใช้งานสูงสุด</div>
+              <ol class="mt-3 space-y-3.5 text-sm">
+                <li>
+                  <div class="flex justify-between gap-3"><span class="truncate">ฌฎ 5157</span><span class="tabular shrink-0 text-slate-600">6,752 กม.</span></div>
+                  <div class="mt-1.5 h-1.5 rounded-full bg-slate-100"><div class="h-full rounded-full bg-teal-500" style="width:100%"></div></div>
+                </li>
+                <li>
+                  <div class="flex justify-between gap-3"><span class="truncate">กพ 1726</span><span class="tabular shrink-0 text-slate-600">2,116 กม.</span></div>
+                  <div class="mt-1.5 h-1.5 rounded-full bg-slate-100"><div class="h-full rounded-full bg-teal-500" style="width:31%"></div></div>
+                </li>
+                <li>
+                  <div class="flex justify-between gap-3"><span class="truncate">ฒก3237 <span class="text-slate-500">(เดิม บษ1560)</span></span><span class="tabular shrink-0 text-slate-600">1,870 กม.</span></div>
+                  <div class="mt-1.5 h-1.5 rounded-full bg-slate-100"><div class="h-full rounded-full bg-teal-500" style="width:28%"></div></div>
+                </li>
+                <li>
+                  <div class="flex justify-between gap-3"><span class="truncate">บธ 4410</span><span class="tabular shrink-0 text-slate-600">1,512 กม.</span></div>
+                  <div class="mt-1.5 h-1.5 rounded-full bg-slate-100"><div class="h-full rounded-full bg-teal-500" style="width:22%"></div></div>
+                </li>
+                <li>
+                  <div class="flex justify-between gap-3"><span class="truncate">ผพ 882</span><span class="tabular shrink-0 text-slate-600">1,204 กม.</span></div>
+                  <div class="mt-1.5 h-1.5 rounded-full bg-slate-100"><div class="h-full rounded-full bg-teal-500" style="width:18%"></div></div>
+                </li>
+              </ol>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[13px] font-medium text-slate-700">ไม่เคยมีข้อมูลเลขไมล์</span>
+                <span class="shrink-0 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">50 คัน</span>
+              </div>
+              <div class="mt-3 flex flex-wrap gap-2 text-[13px]">
+                <span class="rounded-md bg-slate-100 px-2.5 py-1.5">ขอจ 967</span>
+                <span class="rounded-md bg-slate-100 px-2.5 py-1.5">กอ 4785</span>
+                <span class="rounded-md bg-slate-100 px-2.5 py-1.5">บพ-205</span>
+                <span class="rounded-md bg-slate-100 px-2.5 py-1.5">โฟร์คลิฟท์(สัมกรีน) AV-3.0FV</span>
+                <span class="rounded-md bg-slate-100 px-2.5 py-1.5">รถไถ KUBOTA L5018</span>
+                <span class="rounded-md bg-slate-100 px-2.5 py-1.5">ผน 3391</span>
+                <a href="#" class="rounded-md px-2.5 py-1.5 font-medium text-navy hover:bg-slate-50">+44 คัน</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cost -->
+        <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+          <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><i data-lucide="receipt-text"></i></div>
+            <div>
+              <h3 class="font-semibold text-navy">ต้นทุนและค่าใช้จ่าย</h3>
+              <p class="text-[13px] text-slate-500">1–27 ต.ค. 2569 · ไม่รวมซื้อรถ</p>
+            </div>
+          </div>
+
+          <div class="mt-5 flex h-2.5 gap-0.5 overflow-hidden rounded-full" role="img" aria-label="เชื้อเพลิง 80% ซ่อมบำรุง 6% ประกัน ภาษี และทะเบียน 14% อื่นๆ 1%">
+            <div class="bg-emerald-500" style="width:79.7%"></div>
+            <div class="bg-amber-500" style="width:5.6%"></div>
+            <div class="bg-blue-500" style="width:13.7%"></div>
+            <div class="bg-slate-400" style="width:1%"></div>
+          </div>
+
+          <ul class="mt-4 divide-y divide-slate-100 text-sm">
+            <li class="flex items-center justify-between gap-3 py-2.5">
+              <span class="flex min-w-0 items-center gap-2"><span class="h-2 w-2 shrink-0 rounded-full bg-emerald-500"></span>เชื้อเพลิง</span>
+              <span class="tabular shrink-0">฿113,751 <span class="ml-1 inline-block w-8 text-right text-xs text-slate-500">80%</span></span>
+            </li>
+            <li class="flex items-center justify-between gap-3 py-2.5">
+              <span class="flex min-w-0 items-center gap-2"><span class="h-2 w-2 shrink-0 rounded-full bg-amber-500"></span>ซ่อมบำรุง</span>
+              <span class="tabular shrink-0">฿8,055 <span class="ml-1 inline-block w-8 text-right text-xs text-slate-500">6%</span></span>
+            </li>
+            <li class="flex items-center justify-between gap-3 py-2.5">
+              <span class="flex min-w-0 items-center gap-2"><span class="h-2 w-2 shrink-0 rounded-full bg-blue-500"></span><span class="truncate">ประกัน ภาษี และทะเบียน</span></span>
+              <span class="tabular shrink-0">฿19,576 <span class="ml-1 inline-block w-8 text-right text-xs text-slate-500">14%</span></span>
+            </li>
+            <li class="flex items-center justify-between gap-3 py-2.5">
+              <span class="flex min-w-0 items-center gap-2"><span class="h-2 w-2 shrink-0 rounded-full bg-slate-400"></span>อื่นๆ</span>
+              <span class="tabular shrink-0">฿1,340 <span class="ml-1 inline-block w-8 text-right text-xs text-slate-500">1%</span></span>
+            </li>
+          </ul>
+
+          <div class="mt-3 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+            <div>
+              <div class="text-[13px] text-slate-500">ต้นทุนเฉลี่ยต่อคัน</div>
+              <div class="tabular mt-0.5 text-xl font-bold text-navy">฿3,288</div>
+              <div class="mt-0.5 text-xs text-slate-500">จาก 43 คัน</div>
+            </div>
+            <div>
+              <div class="text-[13px] text-slate-500">ต้นทุนต่อ กม.</div>
+              <div class="tabular mt-0.5 text-xl font-bold text-navy">฿5.30</div>
+              <div class="mt-0.5 text-xs text-slate-500">จาก 22 คัน</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trend -->
+      <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600"><i data-lucide="trending-up"></i></div>
+            <div>
+              <h3 class="font-semibold text-navy">แนวโน้ม 12 เดือน</h3>
+              <p class="text-[13px] text-slate-500">เส้นประ = ปีก่อน</p>
+            </div>
+          </div>
+          <div class="grid w-full grid-cols-2 rounded-xl bg-slate-100 p-1 text-[13px] sm:w-auto" role="tablist" aria-label="ตัวชี้วัด">
+            <button role="tab" data-metric="cost" class="trend-tab h-9 rounded-lg px-4 font-medium transition-colors">ค่าใช้จ่าย</button>
+            <button role="tab" data-metric="distance" class="trend-tab h-9 rounded-lg px-4 font-medium transition-colors">ระยะทาง</button>
+          </div>
+        </div>
+
+        <div class="mt-4 text-right text-xs text-slate-500" id="trend-max"></div>
+        <div class="relative mt-2 h-[168px] sm:h-[180px]">
+          <div class="pointer-events-none absolute inset-x-0 top-1/3 border-t border-slate-100"></div>
+          <div class="pointer-events-none absolute inset-x-0 top-2/3 border-t border-slate-100"></div>
+          <div id="trend-bars" class="absolute inset-0 flex items-end gap-1 border-b border-slate-200 sm:gap-3 lg:gap-6"></div>
+          <svg id="trend-line" class="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <polyline fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" points=""></polyline>
+          </svg>
+          <div id="trend-tip" class="pointer-events-none absolute z-10 hidden min-w-[180px] -translate-x-1/2 -translate-y-full rounded-lg bg-navy px-3 py-2 text-xs text-white shadow-lg"></div>
+        </div>
+        <div id="trend-labels" class="mt-2 flex gap-1 text-center text-[11px] text-slate-500 sm:gap-3 sm:text-xs lg:gap-6"></div>
+
+        <div id="trend-legend" class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600"></div>
+
+        <div id="trend-detail" class="mt-4 border-t border-slate-100 pt-4 text-sm" aria-live="polite"></div>
+        <p id="trend-note" class="mt-3 text-xs text-slate-500"></p>
+      </section>
+
+      <!-- Assets + documents -->
+      <section class="grid gap-3 sm:gap-4 xl:grid-cols-3">
+        <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 xl:col-span-2">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><i data-lucide="landmark"></i></div>
+              <div>
+                <h3 class="font-semibold text-navy">มูลค่าทรัพย์สิน</h3>
+                <p class="text-[13px] text-slate-500">ณ วันนี้ · 47 คันที่มีข้อมูล</p>
+              </div>
+            </div>
+            <a href="#" class="-mr-1 mt-1 flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1 py-1 text-[13px] font-medium text-navy hover:underline">ดูทั้งหมด <i data-lucide="chevron-right" class="!h-4 !w-4"></i></a>
+          </div>
+
+          <div class="mt-5">
+            <div class="text-[13px] text-slate-500">มูลค่าคงเหลือสุทธิ</div>
+            <div class="flex items-baseline justify-between gap-3">
+              <div class="tabular text-2xl font-bold text-navy">฿916,359</div>
+              <div class="text-[13px] text-slate-600"><b class="font-semibold text-violet-700">6.5%</b> ของราคาทุน</div>
+            </div>
+            <div class="mt-2 h-2 rounded-full bg-slate-100"><div class="h-full rounded-full bg-violet-500" style="width:6.5%"></div></div>
+            <dl class="mt-4 grid grid-cols-2 gap-4">
+              <div><dt class="text-[13px] text-slate-500">ราคาทุนรวม</dt><dd class="tabular mt-0.5 font-semibold text-slate-900 sm:text-lg">฿14,167,464</dd></div>
+              <div><dt class="text-[13px] text-slate-500">ค่าเสื่อมราคาสะสม</dt><dd class="tabular mt-0.5 font-semibold text-slate-900 sm:text-lg">฿13,251,119</dd></div>
+            </dl>
+          </div>
+
+          <!-- Phone: stacked list -->
+          <ul class="mt-5 divide-y divide-slate-100 border-t border-slate-100 md:hidden">
+            <li class="flex items-start justify-between gap-3 py-3">
+              <div class="min-w-0"><div class="text-sm font-medium">รถแทร็กเตอร์ <span class="font-normal text-slate-500">· 3 คัน</span></div><div class="tabular mt-0.5 text-xs text-slate-500">ทุน ฿1,370,000 · เฉลี่ย ฿136,534/คัน</div></div>
+              <div class="tabular shrink-0 text-sm font-semibold text-navy">฿409,602</div>
+            </li>
+            <li class="flex items-start justify-between gap-3 py-3">
+              <div class="min-w-0"><div class="text-sm font-medium">รถกระบะ <span class="font-normal text-slate-500">· 26 คัน</span></div><div class="tabular mt-0.5 text-xs text-slate-500">ทุน ฿8,420,000 · เฉลี่ย ฿11,478/คัน</div></div>
+              <div class="tabular shrink-0 text-sm font-semibold text-navy">฿298,415</div>
+            </li>
+            <li class="flex items-start justify-between gap-3 py-3">
+              <div class="min-w-0"><div class="text-sm font-medium">รถบรรทุก <span class="font-normal text-slate-500">· 6 คัน</span></div><div class="tabular mt-0.5 text-xs text-slate-500">ทุน ฿2,960,000 · เฉลี่ย ฿26,140/คัน</div></div>
+              <div class="tabular shrink-0 text-sm font-semibold text-navy">฿156,842</div>
+            </li>
+            <li class="flex items-start justify-between gap-3 py-3">
+              <div class="min-w-0"><div class="text-sm font-medium">รถยก (โฟร์คลิฟท์) <span class="font-normal text-slate-500">· 8 คัน</span></div><div class="tabular mt-0.5 text-xs text-slate-500">ทุน ฿987,464 · เฉลี่ย ฿5,188/คัน</div></div>
+              <div class="tabular shrink-0 text-sm font-semibold text-navy">฿41,500</div>
+            </li>
+            <li class="flex items-start justify-between gap-3 py-3">
+              <div class="min-w-0"><div class="text-sm font-medium">รถยนต์นั่ง <span class="font-normal text-slate-500">· 4 คัน</span></div><div class="tabular mt-0.5 text-xs text-slate-500">ทุน ฿430,000 · เฉลี่ย ฿2,500/คัน</div></div>
+              <div class="tabular shrink-0 text-sm font-semibold text-navy">฿10,000</div>
+            </li>
+          </ul>
+
+          <!-- md+: table -->
+          <div class="mt-6 hidden md:block">
+            <table class="tabular w-full text-sm">
+              <thead class="text-xs text-slate-500">
+                <tr class="border-b border-slate-100">
+                  <th class="py-3 text-left font-normal">ประเภทรถ</th>
+                  <th class="py-3 text-right font-normal">คัน</th>
+                  <th class="py-3 text-right font-normal">ราคาทุนรวม</th>
+                  <th class="py-3 text-right font-normal">มูลค่าคงเหลือสุทธิ</th>
+                  <th class="py-3 text-right font-normal">เฉลี่ย/คัน</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr><td class="py-3.5 font-medium">รถแทร็กเตอร์</td><td class="py-3.5 text-right text-slate-600">3</td><td class="py-3.5 text-right text-slate-600">฿1,370,000</td><td class="py-3.5 text-right font-medium">฿409,602</td><td class="py-3.5 text-right text-slate-600">฿136,534</td></tr>
+                <tr><td class="py-3.5 font-medium">รถกระบะ</td><td class="py-3.5 text-right text-slate-600">26</td><td class="py-3.5 text-right text-slate-600">฿8,420,000</td><td class="py-3.5 text-right font-medium">฿298,415</td><td class="py-3.5 text-right text-slate-600">฿11,478</td></tr>
+                <tr><td class="py-3.5 font-medium">รถบรรทุก</td><td class="py-3.5 text-right text-slate-600">6</td><td class="py-3.5 text-right text-slate-600">฿2,960,000</td><td class="py-3.5 text-right font-medium">฿156,842</td><td class="py-3.5 text-right text-slate-600">฿26,140</td></tr>
+                <tr><td class="py-3.5 font-medium">รถยก (โฟร์คลิฟท์)</td><td class="py-3.5 text-right text-slate-600">8</td><td class="py-3.5 text-right text-slate-600">฿987,464</td><td class="py-3.5 text-right font-medium">฿41,500</td><td class="py-3.5 text-right text-slate-600">฿5,188</td></tr>
+                <tr><td class="py-3.5 font-medium">รถยนต์นั่ง</td><td class="py-3.5 text-right text-slate-600">4</td><td class="py-3.5 text-right text-slate-600">฿430,000</td><td class="py-3.5 text-right font-medium">฿10,000</td><td class="py-3.5 text-right text-slate-600">฿2,500</td></tr>
+              </tbody>
+              <tfoot>
+                <tr class="border-t border-slate-200 font-semibold text-navy">
+                  <td class="py-3.5">รวม</td><td class="py-3.5 text-right">47</td><td class="py-3.5 text-right">฿14,167,464</td><td class="py-3.5 text-right">฿916,359</td><td class="py-3.5 text-right">฿19,497</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="min-w-0 self-start rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+          <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><i data-lucide="file-badge"></i></div>
+            <div>
+              <h3 class="font-semibold text-navy">เอกสารและแจ้งเตือน</h3>
+              <p class="text-[13px] text-slate-500">ยังไม่ได้เชื่อมต่อข้อมูล</p>
+            </div>
+          </div>
+          <p class="mt-3 text-[13px] leading-relaxed text-slate-600">เมื่อมีวันหมดอายุ ภาษีรถ / พ.ร.บ. / ประกันภัย ระบบจะแจ้งเตือนคันที่ใกล้หมดอายุที่นี่</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+
+<script>
+  lucide.createIcons();
+
+  // desktop: collapse to icon rail (remembered); mobile: slide-in drawer
+  const desktopMQ = window.matchMedia('(min-width: 1024px)');
+  function openSidebar() { document.documentElement.classList.add('sb-open'); }
+  function closeSidebar() { document.documentElement.classList.remove('sb-open'); }
+  function toggleSidebar() {
+    const root = document.documentElement;
+    if (desktopMQ.matches) {
+      const collapsed = root.classList.toggle('sb-collapsed');
+      try { localStorage.setItem('vam-sb', collapsed ? '1' : '0'); } catch (e) {}
+    } else {
+      root.classList.toggle('sb-open');
+    }
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSidebar(); });
+  desktopMQ.addEventListener('change', closeSidebar);
+
+  // period segmented control (visual state only)
+  const periodTabs = document.querySelectorAll('.period-tab');
+  function paintPeriod() {
+    periodTabs.forEach((b) => {
+      const on = b.getAttribute('aria-selected') === 'true';
+      b.className = 'period-tab h-9 whitespace-nowrap rounded-lg px-2 transition-colors sm:px-3 ' +
+        (on ? 'bg-white font-medium text-navy shadow-sm' : 'text-slate-600 hover:text-slate-900');
+    });
+  }
+  periodTabs.forEach((b) => b.addEventListener('click', () => {
+    periodTabs.forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
+    paintPeriod();
+  }));
+  paintPeriod();
+
+  // ---- Trend chart ----
+  const MONTHS = ['พ.ย.', 'ธ.ค.', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.'];
+  const MONTHS_FULL = ['พฤศจิกายน 2568', 'ธันวาคม 2568', 'มกราคม 2569', 'กุมภาพันธ์ 2569', 'มีนาคม 2569', 'เมษายน 2569', 'พฤษภาคม 2569', 'มิถุนายน 2569', 'กรกฎาคม 2569', 'สิงหาคม 2569', 'กันยายน 2569', 'ตุลาคม 2569 (1–27)'];
+  const SERIES = [
+    { key: 'fuel', name: 'เชื้อเพลิง', solid: '#10b981', soft: '#a7e8d3' },
+    { key: 'repair', name: 'ซ่อมบำรุง', solid: '#f59e0b', soft: '#fcdcaa' },
+    { key: 'ins', name: 'ประกัน ภาษี และทะเบียน', solid: '#3b82f6', soft: '#bcd4fb' },
+    { key: 'lease', name: 'ค่าเช่ารถ', solid: '#8b5cf6', soft: '#d9c8fb' },
+    { key: 'other', name: 'อื่นๆ', solid: '#94a3b8', soft: '#dbe1e8' },
+  ];
+  // [fuel, repair, ins, lease, other] per month, baht
+  const COST = [
+    [140000, 54400, 18100, 0, 1200], [140000, 23300, 18100, 0, 900], [127000, 82900, 33700, 0, 1500],
+    [132200, 33700, 15500, 0, 800], [150300, 15500, 36300, 0, 1100], [129600, 23300, 31100, 0, 1000],
+    [150300, 54400, 28500, 0, 1300], [150300, 67400, 28500, 0, 1200], [114000, 57000, 0, 212678, 0],
+    [145100, 25900, 15500, 0, 900], [132200, 44000, 10400, 0, 1000], [113751, 8055, 19576, 0, 1340],
+  ];
+  const COST_PREV = [220000, 189000, 212000, 174000, 259000, 207000, 285000, 290000, 290000, 205000, 298000, 236000];
+  const DIST = [36420, 33810, 35290, 31760, 39880, 34120, 41650, 40230, 37940, 39110, 38550, 20551];
+  const DIST_PREV = [34100, 30950, 33870, 30420, 36980, 33010, 38760, 39520, 38110, 36240, 37890, 35400];
+
+  const fmt = (n) => n.toLocaleString('th-TH');
+  const canHover = window.matchMedia('(hover: hover)').matches;
+  let metric = 'cost';
+  let selected = 11;
+
+  function renderTrend() {
+    const isCost = metric === 'cost';
+    const totals = isCost ? COST.map((r) => r.reduce((a, b) => a + b, 0)) : DIST;
+    const prev = isCost ? COST_PREV : DIST_PREV;
+    const max = Math.max(...totals, ...prev);
+    const unit = isCost ? 'บาท' : 'กม.';
+
+    document.querySelectorAll('.trend-tab').forEach((b) => {
+      const on = b.dataset.metric === metric;
+      b.setAttribute('aria-selected', on);
+      b.className = 'trend-tab h-9 rounded-lg px-4 font-medium transition-colors ' + (on ? 'bg-white text-navy shadow-sm' : 'text-slate-600 hover:text-slate-900');
+    });
+    document.getElementById('trend-max').textContent = `สูงสุด ${fmt(Math.max(...totals))} ${unit}`;
+
+    const bars = document.getElementById('trend-bars');
+    bars.innerHTML = '';
+    totals.forEach((total, i) => {
+      const col = document.createElement('button');
+      col.className = 'group relative flex h-full flex-1 flex-col-reverse overflow-hidden rounded-t-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-navy/40';
+      col.setAttribute('aria-label', `${MONTHS_FULL[i]} ${fmt(total)} ${unit}`);
+      col.setAttribute('aria-pressed', i === selected);
+      const active = i === selected;
+      const parts = isCost ? COST[i].map((v, s) => [v, SERIES[s]]) : [[total, { solid: '#0ea5a4', soft: '#a5e5e1' }]];
+      parts.forEach(([v, s]) => {
+        if (!v) return;
+        const seg = document.createElement('div');
+        seg.style.height = (v / max) * 100 + '%';
+        seg.style.background = active ? s.solid : s.soft;
+        seg.className = 'bar-seg w-full shrink-0 group-hover:brightness-95';
+        col.appendChild(seg);
+      });
+      if (canHover) {
+        col.addEventListener('mouseenter', () => showTip(i, total, prev[i], unit, col));
+        col.addEventListener('mouseleave', hideTip);
+      }
+      col.addEventListener('click', () => { selected = i; hideTip(); renderTrend(); });
+      bars.appendChild(col);
+    });
+
+    const pts = prev.map((v, i) => `${((i + 0.5) / 12) * 100},${100 - (v / max) * 100}`).join(' ');
+    document.querySelector('#trend-line polyline').setAttribute('points', pts);
+
+    document.getElementById('trend-labels').innerHTML = MONTHS.map((m, i) =>
+      `<span class="flex-1 whitespace-nowrap ${i === selected ? 'font-semibold text-slate-900' : ''}">${m}</span>`).join('');
+
+    const legend = isCost
+      ? SERIES.map((s) => `<span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${s.solid}"></span>${s.name}</span>`).join('')
+      : `<span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:#0ea5a4"></span>ระยะทาง</span>`;
+    document.getElementById('trend-legend').innerHTML = legend + `<span class="flex items-center gap-1.5"><span class="w-4 border-t border-dashed border-slate-500"></span>ปีก่อน</span>`;
+    document.getElementById('trend-note').textContent = (isCost ? 'รวมรถทุกสถานะ · ไม่รวมซื้อรถ (เงินลงทุน)' : 'รวมเฉพาะรถที่มีข้อมูลเลขไมล์') + ' · แตะแท่งเพื่อดูรายเดือน';
+
+    renderDetail(selected, totals, prev, isCost);
+  }
+
+  function renderDetail(i, totals, prev, isCost) {
+    const el = document.getElementById('trend-detail');
+    const diff = prev[i] ? ((totals[i] - prev[i]) / prev[i]) * 100 : 0;
+    const diffCls = diff <= 0 ? 'text-emerald-700' : 'text-rose-700';
+    const rows = isCost
+      ? COST[i].map((v, s) => v ? `<li class="flex items-center justify-between gap-3"><span class="flex min-w-0 items-center gap-1.5"><span class="h-2 w-2 shrink-0 rounded-full" style="background:${SERIES[s].solid}"></span><span class="truncate">${SERIES[s].name}</span></span><b class="tabular shrink-0 font-medium text-slate-900">฿${fmt(v)}</b></li>` : '').join('')
+      : '';
+    el.innerHTML = `
+      <div class="fade-in">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <span class="font-semibold text-navy">${MONTHS_FULL[i]}</span>
+          <span class="tabular"><b class="text-lg text-navy">${isCost ? '฿' : ''}${fmt(totals[i])}${isCost ? '' : ' กม.'}</b>
+            <span class="ml-2 text-xs font-medium ${diffCls}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}% เทียบปีก่อน</span></span>
+        </div>
+        ${rows ? `<ul class="mt-2 grid max-w-2xl gap-x-10 gap-y-1.5 text-[13px] text-slate-600 sm:grid-cols-2">${rows}</ul>` : ''}
+      </div>`;
+  }
+
+  function showTip(i, total, prevVal, unit, col) {
+    const tip = document.getElementById('trend-tip');
+    const box = col.parentElement.getBoundingClientRect();
+    const c = col.getBoundingClientRect();
+    tip.innerHTML = `<div class="font-medium">${MONTHS_FULL[i]}</div>
+      <div class="mt-1 flex justify-between gap-4"><span class="text-slate-300">ปีนี้</span><span>${fmt(total)} ${unit}</span></div>
+      <div class="flex justify-between gap-4"><span class="text-slate-300">ปีก่อน</span><span>${fmt(prevVal)} ${unit}</span></div>`;
+    const left = Math.min(Math.max(c.left - box.left + c.width / 2, 90), box.width - 90);
+    tip.style.left = left + 'px';
+    tip.style.top = '-6px';
+    tip.classList.remove('hidden');
+  }
+  function hideTip() { document.getElementById('trend-tip').classList.add('hidden'); }
+
+  document.querySelectorAll('.trend-tab').forEach((b) =>
+    b.addEventListener('click', () => { metric = b.dataset.metric; renderTrend(); }));
+  renderTrend();
+</script>
+</body>
+</html>
